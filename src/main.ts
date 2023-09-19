@@ -34,6 +34,12 @@ class Symlink extends Plugin {
             this.symlinkRepos()
 		})
 
+        this.addCommand({
+            id: "obsidian-symlink-repos",
+            name: "Symlink repos",
+            editorCallback: () => this.symlinkRepos()
+        })
+
         this.app.workspace.onLayoutReady(() => this.watchTree())
 	}
 

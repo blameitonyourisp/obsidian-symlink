@@ -69,7 +69,7 @@ class SymlinkSettingListController extends SymlinkSettingController {
         //
         const nameSpan = document.createElement("span")
         nameSpan.classList.add("mobile-option-setting-item-name")
-        nameSpan.innerHTML = name
+        nameSpan.appendChild(document.createTextNode(name))
 
         //
         const deleteIcon = document.createElement("div")

@@ -18,11 +18,11 @@ class SymlinkSettingController {
 
     createWrapper(): HTMLDivElement {
         const title = document.createElement("div")
+        title.appendChild(document.createTextNode(this.title))
         title.classList.add("obsidian-symlink-setting-title")
-        title.innerHTML = this.title
 
         const description = document.createElement("div")
-        description.innerHTML = this.description
+        description.appendChild(document.createTextNode(this.description))
 
         const wrapper = document.createElement("div")
         wrapper.classList.add("obsidian-symlink-setting-controller")
