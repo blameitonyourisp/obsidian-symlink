@@ -3,11 +3,10 @@ import * as path from "path"
 
 import { Plugin, setIcon } from "obsidian"
 
-import { DEFAULT_SETTINGS } from "src/settings-default"
-import { SymlinkSettingsTab } from "src/settings-tab"
-
-import type { SymlinkSettings } from "src/types/SymlinkSettings"
+import { DEFAULT_SETTINGS, SymlinkSettingsTab } from "./settings"
 import { setLinearBackoff } from "./utils"
+
+import type { SymlinkSettings } from "./types"
 
 class Symlink extends Plugin {
     vaultDirname: string
@@ -65,6 +64,8 @@ class Symlink extends Plugin {
         const repos: string[] = []
         for (const pathname of fs.readdirSync(dirname)) {
             const absolutePath = path.join(dirname, pathname)
+            // for when source file is deleted, but still exists in obsidian
+            if (!fs.existsSync(absolutePath)) { continue }
             if (fs.statSync(absolutePath).isFile()) { continue }
             else if (fs.existsSync(`${absolutePath}/.git`)) { 
                 repos.push(path.relative(this.localDirname, absolutePath))
