@@ -4,7 +4,6 @@ import * as path from "path"
 import { Plugin, setIcon } from "obsidian"
 
 import { DEFAULT_SETTINGS, SymlinkSettingsTab } from "./settings"
-import { setLinearBackoff } from "./utils"
 
 import type { SymlinkSettings } from "./types"
 
@@ -35,11 +34,7 @@ class Symlink extends Plugin {
             this.symlinkRepos()
 		})
 
-        setLinearBackoff(
-            () => this.watchTree(),
-            () => !!document.querySelector(".nav-files-container"),
-            { maxMs: 10 * 1000 }
-        )
+        this.app.workspace.onLayoutReady(() => this.watchTree())
 	}
 
 	async onunload(): Promise<void> { 
@@ -91,9 +86,14 @@ class Symlink extends Plugin {
         return filteredRepos
     }
 
-    getRepoFiles(repo: string, dir = "/"): string[] {
-        const dirname = path.join(this.localDirname, repo, dir)
+    getRepoFiles(repo: string, searchVault = false, dir = ""): string[] {
+        const dirname = path.join(
+            searchVault ? this.vaultDirname : this.localDirname, 
+            repo, 
+            dir
+        )
         const files: string[] = []
+        if (!fs.existsSync(dirname)) { return files }
         for (const pathname of fs.readdirSync(dirname)) {
             const absolutePath = path.join(dirname, pathname)
             const relativePath = path.join(dir, pathname)
@@ -112,7 +112,7 @@ class Symlink extends Plugin {
                 }
             }
             if (shouldIgnore) { continue }
-            files.push(...this.getRepoFiles(repo, relativePath))
+            files.push(...this.getRepoFiles(repo, searchVault, relativePath))
         }
         return files
     }
@@ -120,17 +120,21 @@ class Symlink extends Plugin {
     symlinkRepos(repos = this.repos): void {
         this.updateRepos()
         for (const repo of repos) { 
-            // recycle vault repo purging stale symlinks, and deleting local files
-            this.removeVaultRepo(repo)
-
             if (this.filteredRepos.includes(repo)) {
-                //
-                setLinearBackoff(
-                    () => this.symlinkRepo(repo),
-                    () => !this.app.vault.getAbstractFileByPath(repo),
-                    { maxMs: 10 * 1000 }
-                )
-            }            
+                if (!fs.existsSync(path.join(this.vaultDirname, repo))) {
+                    this.symlinkRepo(repo)
+                }
+                else {
+                    const event = this.app.vault.on("delete", file => {
+                        if (file.path === repo) {
+                            this.app.vault.offref(event)
+                            this.symlinkRepo(repo)
+                        }
+                    })
+                    this.removeVaultRepo(repo)
+                }
+            }  
+            else { this.removeVaultRepo(repo) } 
         }
     }
 
@@ -153,18 +157,19 @@ class Symlink extends Plugin {
 
         if (fs.existsSync(vaultPath)) {
             fs.rmSync(vaultPath, { recursive: true, force: true })
+        }  
 
-            // clear parents if empty
-            while (repo) {
-                // repo = path.join(repo, "../") // DANGER!!!
-                repo = repo.replace(/(\/|^)[^/]*\/?$/, "")
-                vaultPath = path.join(this.vaultDirname, repo)
-                if (!fs.readdirSync(vaultPath).length) {
-                    // safer since will error if has contents
-                    fs.rmdirSync(vaultPath)
-                }
+        // clear parents if empty
+        while (repo) {
+            // repo = path.join(repo, "../") // DANGER!!!
+            repo = repo.replace(/(\/|^)[^/]*\/?$/, "")
+            vaultPath = path.join(this.vaultDirname, repo)
+            if (!fs.existsSync(vaultPath)) { continue }
+            if (!fs.readdirSync(vaultPath).length) {
+                // safer since will error if has contents
+                fs.rmdirSync(vaultPath)
             }
-        }        
+        } 
     }
 
     addVaultRepo(repo: string): void {
@@ -211,7 +216,7 @@ class Symlink extends Plugin {
         if (!fs.existsSync(parentPath)) {
             fs.mkdirSync(parentPath, { recursive: true })
         } 
-        if (fs.existsSync(destination)) { fs.rmdirSync(destination) }
+        if (fs.existsSync(destination)) { fs.rmSync(destination) }
 
         // Add backoff in else if block?
         fs.symlinkSync(target, destination)
@@ -329,6 +334,7 @@ class Symlink extends Plugin {
 }
 
 // Add descriptions to settings
+// remove util
 
 // @exports
 export default Symlink
