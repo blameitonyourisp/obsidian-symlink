@@ -1,8 +1,21 @@
-/*
+.obsidian-symlink-setting-list {
+    margin: 1.5em 0 0.75em 0;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.obsidian-symlink-setting-title {
+    font-size: var(--font-ui-large);
+    margin-bottom: 0.75em;
+    font-weight: var(--font-semibold);
+    text-align: left;
+    line-height: var(--line-height-tight);
+}
 
-If your plugin does not need CSS, delete this file.
+.obsidian-symlink-setting-controller {
+    margin-bottom: 1.5em;
+}
 
-*/
+.tree-symlink-icon {
+    position: relative !important;
+    margin-left: auto !important;
+    margin-right: 0;
+}
