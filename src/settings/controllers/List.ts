@@ -1,4 +1,4 @@
-import { Setting, setIcon} from "obsidian"
+import { Setting, setIcon, normalizePath } from "obsidian"
 
 import { SymlinkSettingController } from "./Base"
 
@@ -102,6 +102,7 @@ class SymlinkSettingListController extends SymlinkSettingController {
 
     async mountListItem(name: string, list: HTMLDivElement): Promise<void> {
         if (!name) { return }
+        name = normalizePath(name)
         let shouldMount = true
         const item = this.createListItem(name)
         const set = new Set(this.plugin.settings[this.setting])

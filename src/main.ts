@@ -30,14 +30,14 @@ class Symlink extends Plugin {
         this.updateRepos()
 
 		// Called when the user clicks the icon.
-		this.addRibbonIcon("folder-symlink", "Obsidian Symlink", () => {
+		this.addRibbonIcon("folder-symlink", "Symlink repositories", () => {
             this.symlinkRepos()
 		})
 
         this.addCommand({
             id: "obsidian-symlink-repos",
-            name: "Symlink repos",
-            editorCallback: () => this.symlinkRepos()
+            name: "Symlink repositories",
+            callback: () => this.symlinkRepos()
         })
 
         this.app.workspace.onLayoutReady(() => this.watchTree())
