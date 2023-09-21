@@ -1,24 +1,31 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "inlineSourceMap": true,
-    "inlineSources": true,
-    "module": "ESNext",
-    "target": "ES2022",
-    "allowJs": true,
-    "noImplicitAny": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "isolatedModules": true,
-	"strictNullChecks": true,
-    "lib": [
-      "DOM",
-      "ES5",
-      "ES6",
-      "ES7"
+    "compilerOptions": {
+        "target": "ES2022",
+        "skipLibCheck": true,
+        "strict": true,
+        "module": "NodeNext",
+        "allowImportingTsExtensions": true,
+        "checkJs": true,
+        "allowJs": true,
+        "noEmit": true,
+        "isolatedModules": true,
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "importHelpers": true,
+        "lib": [
+            "DOM",
+            "ES5",
+            "ES6",
+            "ES7"
+        ],
+        "paths": {
+            "#settings": [ "./src/settings/index.ts", "./src/settings/*.ts" ],
+            "#settings/controllers": [ "./src/settings/controllers/index.ts", "./src/settings/controllers/*.ts" ],
+            "#types": [ "./src/types/index.ts", "./src/types/*.ts" ]
+        }
+    },
+    "include": [
+        "src/**/*",
+        "admin/**/*"
     ]
-  },
-  "include": [
-    "**/*.ts"
-  ]
 }

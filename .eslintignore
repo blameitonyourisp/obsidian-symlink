@@ -1,3 +1,8 @@
-node_modules
+# Please see eslint documentation on ignore files for more information:
+# https://eslint.org/docs/latest/use/configure/ignore#the-eslintignore-file
 
-main.js
+# Node modules and dot-folders ignored by default by eslint.
+
+# Development and distribution builds.
+build
+dist

@@ -1,25 +1,12 @@
-# vscode
-.vscode 
+# Please see git documentation on ignore files for more information:
+# https://git-scm.com/docs/gitignore
 
-# Intellij
-*.iml
-.idea
-
-# npm
+# Node modules.
 node_modules
 
-# Don't include the compiled main.js file in the repo.
-# They should be uploaded to GitHub releases instead.
-main.js
+# Environment variables.
+.env
 
-# Exclude sourcemaps
-*.map
-
-# obsidian
-data.json
-
-# node modules
-node_modules
-
-# dev builds and caches
+# Development builds and caches.
 build
+.jsdoc-cache
