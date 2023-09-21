@@ -3,18 +3,21 @@ import * as path from "path"
 
 import { Plugin, setIcon } from "obsidian"
 
-import { DEFAULT_SETTINGS, SymlinkSettingsTab } from "./settings"
+import { DEFAULT_SETTINGS, SymlinkSettingsTab } from "#settings"
 
-import type { SymlinkSettings } from "./types"
+import type { SymlinkSettings } from "#types"
 
+/**
+ * Symlink plugin
+ */
 class Symlink extends Plugin {
-    vaultDirname: string
-    localDirname: string
-	settings: SymlinkSettings
-    repos: string[]
-    filteredRepos: string[]
-    fileTree: HTMLElement
-    fileTreeObserver: MutationObserver
+    vaultDirname!: string
+    localDirname!: string
+	settings!: SymlinkSettings
+    repos!: string[]
+    filteredRepos!: string[]
+    fileTree!: HTMLDivElement
+    fileTreeObserver!: MutationObserver
 
 	async onload(): Promise<void> {
         // @ts-expect-error basePath exists on adapter object at runtime
@@ -52,9 +55,7 @@ class Symlink extends Plugin {
 		this.settings = Object.assign(DEFAULT_SETTINGS, await this.loadData())
 	}
 
-	async saveSettings(): Promise<void> {
-		await this.saveData(this.settings)
-	}
+	async saveSettings(): Promise<void> { await this.saveData(this.settings) }
 
     updateRepos() {
         this.repos = this.getRepos()
@@ -68,7 +69,7 @@ class Symlink extends Plugin {
             // for when source file is deleted, but still exists in obsidian
             if (!fs.existsSync(absolutePath)) { continue }
             if (fs.statSync(absolutePath).isFile()) { continue }
-            else if (fs.existsSync(`${absolutePath}/.git`)) { 
+            else if (fs.existsSync(`${absolutePath}/.git`)) {
                 repos.push(path.relative(this.localDirname, absolutePath))
                 continue
             }
@@ -77,9 +78,9 @@ class Symlink extends Plugin {
         return repos
     }
 
-    filterRepos(repos = this.repos): string[] {
+    filterRepos(): string[] {
         const filteredRepos: string[] = []
-        for (const repo of repos) {
+        for (const repo of this.repos) {
             if (this.settings.isWhitelist) {
                 if (this.settings.repositoryInclude.includes(repo)) {
                     filteredRepos.push(repo)
@@ -123,10 +124,10 @@ class Symlink extends Plugin {
         return files
     }
 
-    symlinkRepos(repos = this.repos): void {
+    symlinkRepos(): void {
         this.updateRepos()
-        for (const repo of repos) { 
-            if (this.filteredRepos.includes(repo)) {
+        for (const repo of this.repos) { 
+            if ((this.filteredRepos).includes(repo)) {
                 if (!fs.existsSync(path.join(this.vaultDirname, repo))) {
                     this.symlinkRepo(repo)
                 }
@@ -228,11 +229,11 @@ class Symlink extends Plugin {
         fs.symlinkSync(target, destination)
     }
 
-    watchTree(tree = this.fileTree): void {
-        tree ??= document.querySelector(".nav-files-container") as HTMLElement
+    watchTree(): void {
+        const tree = document.querySelector(".nav-files-container")
         if (!tree) { return }
 
-        this.fileTree = tree
+        this.fileTree = tree as HTMLDivElement
         this.highlightTree()
 
         const options: MutationObserverInit = { childList: true, subtree: true }
@@ -240,7 +241,7 @@ class Symlink extends Plugin {
             let shouldHighlight = false
             DATA_PATH_MUTATION: for (const mutation of mutations) {
                 for (const node of Array.from(mutation.addedNodes)) {
-                    if ((node as HTMLElement).querySelector("[data-path]")) {
+                    if ((node as HTMLDivElement).querySelector("[data-path]")) {
                         shouldHighlight = true
                         break DATA_PATH_MUTATION
                     }
@@ -290,7 +291,7 @@ class Symlink extends Plugin {
 
             //
             const icon = (tree.querySelector(".tree-symlink-icon") || 
-                document.createElement("div")) as HTMLElement
+                document.createElement("div")) as HTMLDivElement
             icon.classList.add("tree-item-icon", "tree-symlink-icon")
 
             // to allow correct setting reflection - rewrite with svg query selector all?
@@ -319,11 +320,11 @@ class Symlink extends Plugin {
                 icon.style.color = "var(--color-orange)"
             } 
             else {
-                if (this.filteredRepos.includes(dataPath)) {
+                if ((this.filteredRepos).includes(dataPath)) {
                     setIcon(icon, "check-circle-2") 
                     icon.style.color = "var(--color-green)"
                 }
-                else if (this.repos.includes(dataPath)) {
+                else if ((this.repos).includes(dataPath)) {
                     setIcon(icon, "alert-circle")
                     icon.style.color = "var(--color-orange)"
                 }
@@ -334,13 +335,13 @@ class Symlink extends Plugin {
 
         //
         for (const child of Array.from(tree.children)) {
-            this.highlightTree(child as HTMLElement)
+            this.highlightTree(child as HTMLDivElement)
         }
     }
 }
 
-// Add descriptions to settings
 // remove util
+// add glob support for ignore files
 
 // @exports
 export default Symlink

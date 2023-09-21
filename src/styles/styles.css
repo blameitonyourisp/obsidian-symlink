@@ -1,21 +1,16 @@
-.obsidian-symlink-setting-list {
-    margin: 1.5em 0 0.75em 0;
-}
-
-.obsidian-symlink-setting-title {
+.symlink-setting-title {
     font-size: var(--font-ui-large);
     margin-bottom: 0.75em;
-    font-weight: var(--font-semibold);
-    text-align: left;
-    line-height: var(--line-height-tight);
-}
-
-.obsidian-symlink-setting-controller {
-    margin-bottom: 1.5em;
 }
 
 .tree-symlink-icon {
     position: relative !important;
     margin-left: auto !important;
     margin-right: 0;
+}
+
+.symlink-disabled-button {
+    background-color: var(--color-base-30) !important;
+    box-shadow: none !important;
+    color: var(--text-faint);
 }

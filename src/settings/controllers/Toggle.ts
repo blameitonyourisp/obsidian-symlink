@@ -1,13 +1,13 @@
 import { Setting } from "obsidian"
 
-import { SymlinkSettingController } from "./Base"
+import { SymlinkSettingController } from "./Base.ts"
 
-import type { SymlinkSettings } from "../../types"
-import type { Symlink } from "../../main"
+import type { SymlinkSettings } from "#types"
+import type { Symlink } from "../../main.ts"
 
 class SymlinkSettingToggleController extends SymlinkSettingController {
-    input: { name: string, description: string }
-    setting: keyof Pick<SymlinkSettings, "isWhitelist">
+    input!: { name: string, description: string }
+    setting!: keyof Pick<SymlinkSettings, "isWhitelist">
 
     constructor(
         { title, description, container, plugin, input, setting }: {
@@ -20,7 +20,6 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
     }) {
         super({ title, description, container, plugin })
         Object.assign(this, { input, setting })
-        // container.appendChild(this.createController())
     }
 
     //
@@ -33,10 +32,10 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
         new Setting(wrapper)
 			.setName(this.input.name)
 			.setDesc(this.input.description)
-            .addToggle(toggle => {
-                toggle.setValue(isToggled)
-                    .onChange(async boolean => {
-                        isToggled = boolean
+            .addToggle(toggleComponent => {
+                toggleComponent.setValue(isToggled)
+                    .onChange(async toggleValue => {
+                        isToggled = toggleValue
                         this.plugin.settings[this.setting] = isToggled
                         await this.plugin.saveSettings().then(() => {
                             this.plugin.updateRepos()

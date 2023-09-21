@@ -1,2 +1,2 @@
-export * from "./defaults"
-export * from "./Tab"
+export * from "./defaults.ts"
+export * from "./Tab.ts"

@@ -4,9 +4,9 @@ import {
     SymlinkSettingListController, 
     SymlinkSettingDropdownController,
     SymlinkSettingToggleController
-} from "./controllers"
+} from "#settings/controllers"
 
-import type { Symlink } from "../main"
+import type { Symlink } from "../main.ts"
 
 class SymlinkSettingsTab extends PluginSettingTab {
 	plugin: Symlink
@@ -25,63 +25,74 @@ class SymlinkSettingsTab extends PluginSettingTab {
         })
         
         new SymlinkSettingListController({
-            title: "Ignore Repository Directories",
+            title: "",
             description: "",
             container: containerEl,
             plugin: this.plugin,
             input: {
-                name: "Directory path",
-                description: "Directory in repositories to ignore.",
+                name: "Ignored directory paths",
+                description: "Directories which will be ignored when \
+                symlinking a repository. All paths are relative to the root of \
+                each repository. See existing list above.",
             },
             setting: "repositoryDirIgnore"
         }).mount()
         
         new SymlinkSettingListController({
-            title: "Link Repository Directories",
+            title: "",
             description: "",
             container: containerEl,
             plugin: this.plugin,
             input: {
-                name: "Directory path",
-                description: "Directory in repositories to directly link.",
+                name: "Symlinked directory paths",
+                description: "Directories which will be directly linked when \
+                symlinking a repository. All paths are relative to the root of \
+                each repository. See existing list above.",
             },
             setting: "repositoryDirLink"
         }).mount()
         
         new SymlinkSettingDropdownController({
-            title: "Ignore Repositories",
+            title: "",
             description: "",
             container: containerEl,
             plugin: this.plugin,
             input: {
-                name: "Repository path",
-                description: "Repository to ignore.",
+                name: "Blacklist repository paths",
+                description: "Repositories which will be ignored when \
+                indexing repositories for symlinking. All paths are relative \
+                to the parent directory of this vault. See existing list \
+                above.",
             },
             setting: "repositoryIgnore",
             options: repos
         }).mount()
         
         new SymlinkSettingDropdownController({
-            title: "Include Repositories",
+            title: "",
             description: "",
             container: containerEl,
             plugin: this.plugin,
             input: {
-                name: "Repository path",
-                description: "Repository to include.",
+                name: "Whitelist repository paths",
+                description: "Repositories which will be included when \
+                indexing repositories for symlinking. All paths are relative \
+                to the parent directory of this vault. See existing list \
+                above.",
             },
             setting: "repositoryInclude",
             options: repos
         }).mount()
         
         new SymlinkSettingToggleController({
-            title: "Whitelist",
+            title: "",
             description: "",
             container: containerEl,
             plugin: this.plugin,
             input: {
                 name: "Whitelist mode",
-                description: "Is plugin in whitelist mode.",
+                description: "Should symlinked repositories be indexed based \
+                on the repository blacklist or whitelist?",
             },
             setting: "isWhitelist"
         }).mount()

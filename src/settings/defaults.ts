@@ -1,4 +1,4 @@
-import type { SymlinkSettings } from "../types"
+import type { SymlinkSettings } from "#types"
 
 const DEFAULT_SETTINGS: SymlinkSettings = {
 	repositoryDirIgnore: ["node_modules", ".git"],

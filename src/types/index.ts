@@ -1,1 +1,1 @@
-export * from "./SymlinkSettings"
+export * from "./SymlinkSettings.ts"

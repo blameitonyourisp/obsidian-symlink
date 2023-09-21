@@ -1,12 +1,12 @@
 import { Setting } from "obsidian"
 
-import { SymlinkSettingListController } from "./List"
+import { SymlinkSettingListController } from "./List.ts"
 
-import type { SymlinkSettings } from "../../types"
-import type { Symlink } from "../../main"
+import type { SymlinkSettings } from "#types"
+import type { Symlink } from "../../main.ts"
 
 class SymlinkSettingDropdownController extends SymlinkSettingListController {
-    options: { value: string, display: string }[]
+    options!: { value: string, display: string }[]
 
     constructor(
         { title, description, container, plugin, input, setting, options }: {
@@ -20,37 +20,39 @@ class SymlinkSettingDropdownController extends SymlinkSettingListController {
     }) {
         super({ title, description, container, plugin, input, setting })
         Object.assign(this, { options })
-        // container.appendChild(this.createController())
     }
 
     createController(): HTMLDivElement {
         //
         const wrapper = this.createWrapper()
-        const list = this.createList()
-        wrapper.appendChild(list)
+        this.list = this.createList()
+        wrapper.appendChild(this.list)
 
         //
-        for (const name of this.plugin.settings[this.setting]) {
-            const item = this.createListItem(name)
-            list.appendChild(item)
+        for (const pathname of this.plugin.settings[this.setting]) {
+            const item = this.createListItem(pathname)
+            this.list.appendChild(item)
         }
 
         //
-        let name = this.options[0]?.value
+        this.pathname = this.options[0]?.value
         new Setting(wrapper)
             .setName(this.input.name)
             .setDesc(this.input.description)
-            .addDropdown(dropdown => {
+            .addDropdown(dropdownComponent => {
                 for (const option of this.options) {
-                    dropdown.addOption(option.value, option.display)
+                    dropdownComponent.addOption(option.value, option.display)
                 }
-                dropdown.onChange(string => name = string)
+                dropdownComponent.onChange(dropdownValue => {
+                    this.pathname = dropdownValue
+                    this.updateButton()
+                })
             })
-            .addButton(button => {
-                button.setButtonText("Add")
-                    .onClick(async () => {
-                        await this.mountListItem(name, list)
-                    })
+            .addButton(buttonComponent => {
+                this.button = buttonComponent
+                this.updateButton()
+                buttonComponent.setButtonText("Add")
+                    .onClick(async () => { await this.mountListItem() })
             })
 
         return wrapper

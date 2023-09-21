@@ -1,13 +1,20 @@
-import { Setting, setIcon, normalizePath } from "obsidian"
+import * as path from "path"
 
-import { SymlinkSettingController } from "./Base"
+import { Setting, setIcon, normalizePath, ButtonComponent } from "obsidian"
 
-import type { SymlinkSettings } from "../../types"
-import type { Symlink } from "../../main"
+import { SymlinkSettingController } from "./Base.ts"
+
+import type { SymlinkSettings } from "#types"
+import type { Symlink } from "../../main.ts"
 
 class SymlinkSettingListController extends SymlinkSettingController {
-    input: { name: string, description: string }
-    setting: keyof Omit<SymlinkSettings, "isWhitelist">
+    input!: { name: string, description: string }
+    setting!: keyof Omit<SymlinkSettings, "isWhitelist">
+    settingSet: Set<string>
+
+    list?: HTMLDivElement
+    pathname?: string
+    button?: ButtonComponent
 
     constructor(
         { title, description, container, plugin, input, setting }: {
@@ -20,35 +27,40 @@ class SymlinkSettingListController extends SymlinkSettingController {
     }) {
         super({ title, description, container, plugin })
         Object.assign(this, { input, setting })
+        this.settingSet = new Set(this.plugin.settings[this.setting])
     }
 
     //
     createController(): HTMLDivElement {        
         //
         const wrapper = this.createWrapper()
-        const list = this.createList()
-        wrapper.appendChild(list)
+        this.list = this.createList()
+        wrapper.appendChild(this.list)
 
         //
-        for (const name of this.plugin.settings[this.setting]) {
-            const item = this.createListItem(name)
-            list.appendChild(item)
+        for (const pathname of this.plugin.settings[this.setting]) {
+            const item = this.createListItem(pathname)
+            this.list.appendChild(item)
         }
 
         //
-        let name: string
         new Setting(wrapper)
 			.setName(this.input.name)
 			.setDesc(this.input.description)
-            .addText(text => {
-                text.setPlaceholder("Enter directory name...")
-                    .onChange(string => name = string)
-            })
-            .addButton(button => {
-                button.setButtonText("Add")
-                    .onClick(async () => {
-                        await this.mountListItem(name, list)
+            .addText(textComponent => {
+                textComponent.setPlaceholder("Enter directory name...")
+                    .onChange(textValue => {
+                        this.pathname = textValue 
+                            ? normalizePath(textValue) 
+                            : undefined
+                        this.updateButton()
                     })
+            })
+            .addButton(buttonComponent => {
+                this.button = buttonComponent
+                this.updateButton()
+                buttonComponent.setButtonText("Add")
+                    .onClick(async () => { await this.mountListItem() })
             })
 
         return wrapper
@@ -59,17 +71,17 @@ class SymlinkSettingListController extends SymlinkSettingController {
     createList(): HTMLDivElement {
         //
         const wrapper = document.createElement("div")
-        wrapper.classList.add("obsidian-symlink-setting-list")
+        wrapper.classList.add("symlink-setting-list")
 
         return wrapper
     }
 
     //
-    createListItem(name: string): HTMLDivElement {
+    createListItem(pathname = this.pathname as string): HTMLDivElement {
         //
-        const nameSpan = document.createElement("span")
-        nameSpan.classList.add("mobile-option-setting-item-name")
-        nameSpan.appendChild(document.createTextNode(name))
+        const pathnameSpan = document.createElement("span")
+        pathnameSpan.classList.add("mobile-option-setting-item-name")
+        pathnameSpan.appendChild(document.createTextNode(pathname))
 
         //
         const deleteIcon = document.createElement("div")
@@ -83,15 +95,15 @@ class SymlinkSettingListController extends SymlinkSettingController {
         //
         const wrapper = document.createElement("div")
         wrapper.classList.add("mobile-option-setting-item")
-        wrapper.append(nameSpan, deleteIcon)
+        wrapper.append(pathnameSpan, deleteIcon)
 
         //
         deleteIcon.addEventListener("click", async () => {
-            const set = new Set(this.plugin.settings[this.setting])
-            set.delete(name)
-            this.plugin.settings[this.setting] = Array.from(set)
+            this.settingSet.delete(pathname)
+            this.plugin.settings[this.setting] = Array.from(this.settingSet)
             await this.plugin.saveSettings().then(() => {
                 wrapper.remove()
+                this.updateButton()
                 this.plugin.updateRepos()
                 this.plugin.highlightTree()
             })
@@ -100,20 +112,50 @@ class SymlinkSettingListController extends SymlinkSettingController {
         return wrapper
     }
 
-    async mountListItem(name: string, list: HTMLDivElement): Promise<void> {
-        if (!name) { return }
-        name = normalizePath(name)
-        let shouldMount = true
-        const item = this.createListItem(name)
-        const set = new Set(this.plugin.settings[this.setting])
-        if (set.has(name)) { shouldMount = false }
-        else { set.add(name) }
-        this.plugin.settings[this.setting] = Array.from(set)
+    async mountListItem(): Promise<void> {
+        const shouldMount = this.shouldMount()
+        if (shouldMount) { this.settingSet.add(this.pathname as string) }
+        this.plugin.settings[this.setting] = Array.from(this.settingSet)
         await this.plugin.saveSettings().then(() => {
-            if (shouldMount) { list.appendChild(item) }
+            if (shouldMount) { 
+                const item = this.createListItem();
+                (this.list as HTMLDivElement).appendChild(item) 
+            }
+            this.updateButton()
             this.plugin.updateRepos()
             this.plugin.highlightTree()
         })
+    }
+
+    shouldMount(): boolean { return !this.getButtonTooltip() }
+
+    updateButton(): void {
+        if (!this.button) { return }
+
+        this.button.buttonEl.removeClasses([
+            "symlink-enabled-button",
+            "symlink-disabled-button"
+        ])
+
+        const tooltip = this.getButtonTooltip()
+        this.button.setTooltip(tooltip)
+
+        if (tooltip) { this.button.setClass("symlink-disabled-button") }
+        else { this.button.setClass("symlink-enabled-button") }
+    }
+
+    getButtonTooltip(): string {
+        let tooltip = ""
+
+        if (!this.pathname) { tooltip = "Enter path" }
+        else if (this.settingSet.has(this.pathname)) { 
+            tooltip = "Already exists" 
+        }
+        else if (path.extname(this.pathname)) {
+            tooltip = "Enter a valid directory, not a path to a file"
+        }
+
+        return tooltip
     }
 }
 
