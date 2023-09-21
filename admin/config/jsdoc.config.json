@@ -1,0 +1,54 @@
+{
+    "docdash": {
+        "sort": true,
+        "sectionOrder": [
+            "Tutorials",
+            "Classes",
+            "Namespaces",
+            "Modules",
+            "Externals",
+            "Events",
+            "Mixins",
+            "Interfaces",
+            "Global"
+        ],
+        "search": true,
+        "collapse": true,
+        "typedefs": true
+    },
+    "opts": {
+        "destination": "build/jsdoc",
+        "private": true,
+        "recurse": true,
+        "readme": "README.md",
+        "template": "node_modules/docdash"
+    },
+    "plugins": [ 
+        "plugins/markdown"
+    ],
+    "markdown": {
+        "hardwrap": false,
+        "idInHeadings": true
+    },
+    "recurseDepth": 10,
+    "source": {
+        "include": ["src"],
+        "includePattern": ".+\\.ts?$"
+    },
+    "sourceType": "module",
+    "tags": {
+        "allowUnknownTags": true,
+        "dictionaries": ["jsdoc", "closure"]
+    },
+    "templates": {
+        "cleverLinks": false,
+        "monospaceLinks": false,
+        "default": {
+            "staticFiles": {
+                "include": [
+                    "admin/assets"
+                ]
+            }
+        }
+    }
+}
