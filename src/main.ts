@@ -1,14 +1,36 @@
+// Copyright (c) 2022 James Reid. All rights reserved.
+//
+// This source code file is licensed under the terms of the MIT license, a copy
+// of which may be found in the LICENSE.md file in the root of this repository.
+//
+// For a template copy of the license see one of the following 3rd party sites:
+//      - <https://opensource.org/licenses/MIT>
+//      - <https://choosealicense.com/licenses/mit>
+//      - <https://spdx.org/licenses/MIT>
+
+/**
+ * @file Symlink plugin declaration.
+ * @author James Reid
+ */
+
+// @ts-check
+
+// @imports-node
 import * as fs from "fs"
 import * as path from "path"
 
+// @imports-dependencies
 import { Plugin, setIcon } from "obsidian"
 
+// @imports-package
 import { DEFAULT_SETTINGS, SymlinkSettingsTab } from "#settings"
 
+// @imports-types
 import type { SymlinkSettings } from "#types"
 
+// @body
 /**
- * Symlink plugin
+ * Obsidian symlink plugin. Allows users to
  */
 class Symlink extends Plugin {
     vaultDirname!: string
@@ -19,6 +41,9 @@ class Symlink extends Plugin {
     fileTree!: HTMLDivElement
     fileTreeObserver!: MutationObserver
 
+    /**
+     * 
+     */
 	async onload(): Promise<void> {
         // @ts-expect-error basePath exists on adapter object at runtime
         this.vaultDirname = this.app.vault.adapter.basePath
@@ -46,22 +71,39 @@ class Symlink extends Plugin {
         this.app.workspace.onLayoutReady(() => this.watchTree())
 	}
 
+    /**
+     * 
+     */
 	async onunload(): Promise<void> { 
         this.unwatchTree()
         await this.saveSettings() 
     }
 
+    /**
+     * 
+     */
     async loadSettings(): Promise<void> {
 		this.settings = Object.assign(DEFAULT_SETTINGS, await this.loadData())
 	}
 
+    /**
+     * 
+     */
 	async saveSettings(): Promise<void> { await this.saveData(this.settings) }
 
+    /**
+     * 
+     */
     updateRepos() {
         this.repos = this.getRepos()
         this.filteredRepos = this.filterRepos()
     }
 
+    /**
+     * 
+     * @param dirname 
+     * @returns 
+     */
     getRepos(dirname = this.localDirname): string[] {
         const repos: string[] = []
         for (const pathname of fs.readdirSync(dirname)) {
@@ -78,6 +120,10 @@ class Symlink extends Plugin {
         return repos
     }
 
+    /**
+     * 
+     * @returns 
+     */
     filterRepos(): string[] {
         const filteredRepos: string[] = []
         for (const repo of this.repos) {
@@ -93,6 +139,13 @@ class Symlink extends Plugin {
         return filteredRepos
     }
 
+    /**
+     * 
+     * @param repo 
+     * @param searchVault 
+     * @param dir 
+     * @returns 
+     */
     getRepoFiles(repo: string, searchVault = false, dir = ""): string[] {
         const dirname = path.join(
             searchVault ? this.vaultDirname : this.localDirname, 
@@ -124,6 +177,9 @@ class Symlink extends Plugin {
         return files
     }
 
+    /**
+     * 
+     */
     symlinkRepos(): void {
         this.updateRepos()
         for (const repo of this.repos) { 
@@ -145,6 +201,10 @@ class Symlink extends Plugin {
         }
     }
 
+    /**
+     * 
+     * @param repo 
+     */
     symlinkRepo(repo: string): void {
         // Add vault directory
         this.addVaultRepo(repo)
@@ -159,6 +219,10 @@ class Symlink extends Plugin {
         }
     }
 
+    /**
+     * 
+     * @param repo 
+     */
     removeVaultRepo(repo: string): void {
         let vaultPath = path.join(this.vaultDirname, repo)
 
@@ -179,6 +243,10 @@ class Symlink extends Plugin {
         } 
     }
 
+    /**
+     * 
+     * @param repo 
+     */
     addVaultRepo(repo: string): void {
         const vaultPath = path.join(this.vaultDirname, repo)
 
@@ -187,6 +255,12 @@ class Symlink extends Plugin {
         }
     }
 
+    /**
+     * 
+     * @param repo 
+     * @param link 
+     * @returns 
+     */
     symlinkRepoDirectory(repo: string, link: string): void {
         const target = path.join(this.localDirname, repo, link)
         if (!fs.existsSync(target)) { return }
@@ -203,6 +277,12 @@ class Symlink extends Plugin {
         fs.symlinkSync(target, destination)
     }
 
+    /**
+     * 
+     * @param repo 
+     * @param file 
+     * @returns 
+     */
     symlinkFile(repo: string, file: string): void {
         const target = path.join(this.localDirname, repo, file)
         if (!fs.existsSync(target)) { return }
@@ -229,6 +309,10 @@ class Symlink extends Plugin {
         fs.symlinkSync(target, destination)
     }
 
+    /**
+     * 
+     * @returns 
+     */
     watchTree(): void {
         const tree = document.querySelector(".nav-files-container")
         if (!tree) { return }
@@ -257,11 +341,21 @@ class Symlink extends Plugin {
         this.fileTreeObserver.observe(this.fileTree, options)
     }
 
+    /**
+     * 
+     * @param observer 
+     * @returns 
+     */
     unwatchTree(observer = this.fileTreeObserver): void {
         if (!observer) { return }
         observer.disconnect()
     }
 
+    /**
+     * 
+     * @param tree 
+     * @returns 
+     */
     highlightTree(tree = this.fileTree): void {
         if (!tree) { return }
         const dataPath = tree.getAttribute("data-path")

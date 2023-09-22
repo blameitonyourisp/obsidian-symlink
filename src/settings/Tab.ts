@@ -1,21 +1,53 @@
+// Copyright (c) 2022 James Reid. All rights reserved.
+//
+// This source code file is licensed under the terms of the MIT license, a copy
+// of which may be found in the LICENSE.md file in the root of this repository.
+//
+// For a template copy of the license see one of the following 3rd party sites:
+//      - <https://opensource.org/licenses/MIT>
+//      - <https://choosealicense.com/licenses/mit>
+//      - <https://spdx.org/licenses/MIT>
+
+/**
+ * @file Symlink settings tab.
+ * @author James Reid
+ */
+
+// @ts-check
+
+// @imports-dependencies
 import { App, PluginSettingTab } from "obsidian"
 
+// @imports-submodule
 import { 
     SymlinkSettingListController, 
     SymlinkSettingDropdownController,
     SymlinkSettingToggleController
 } from "#settings/controllers"
 
+// @imports-types
 import type { Symlink } from "../main.ts"
 
+// @body
+/**
+ * 
+ */
 class SymlinkSettingsTab extends PluginSettingTab {
 	plugin: Symlink
 
+    /**
+     * 
+     * @param app 
+     * @param plugin 
+     */
 	constructor(app: App, plugin: Symlink) {
 		super(app, plugin)
 		this.plugin = plugin
 	}
 
+    /**
+     * 
+     */
 	display(): void {
 		const { containerEl } = this
 		containerEl.empty()

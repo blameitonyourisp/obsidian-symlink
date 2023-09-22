@@ -1,14 +1,42 @@
+// Copyright (c) 2022 James Reid. All rights reserved.
+//
+// This source code file is licensed under the terms of the MIT license, a copy
+// of which may be found in the LICENSE.md file in the root of this repository.
+//
+// For a template copy of the license see one of the following 3rd party sites:
+//      - <https://opensource.org/licenses/MIT>
+//      - <https://choosealicense.com/licenses/mit>
+//      - <https://spdx.org/licenses/MIT>
+
+/**
+ * @file Symlink toggle setting controller.
+ * @author James Reid
+ */
+
+// @ts-check
+
+// @imports-dependencies
 import { Setting } from "obsidian"
 
+// @imports-module
 import { SymlinkSettingController } from "./Base.ts"
 
+// @imports-types
 import type { SymlinkSettings } from "#types"
 import type { Symlink } from "../../main.ts"
 
+// @body
+/**
+ * 
+ */
 class SymlinkSettingToggleController extends SymlinkSettingController {
     input!: { name: string, description: string }
     setting!: keyof Pick<SymlinkSettings, "isWhitelist">
 
+    /**
+     * 
+     * @param param0 
+     */
     constructor(
         { title, description, container, plugin, input, setting }: {
             title: string,
@@ -22,7 +50,10 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
         Object.assign(this, { input, setting })
     }
 
-    //
+    /**
+     * 
+     * @returns 
+     */
     createController(): HTMLDivElement {        
         //
         const wrapper = this.createWrapper()
@@ -48,4 +79,5 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
     }
 }
 
+// @exports
 export { SymlinkSettingToggleController }

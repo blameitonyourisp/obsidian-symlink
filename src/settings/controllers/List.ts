@@ -1,12 +1,37 @@
+// Copyright (c) 2022 James Reid. All rights reserved.
+//
+// This source code file is licensed under the terms of the MIT license, a copy
+// of which may be found in the LICENSE.md file in the root of this repository.
+//
+// For a template copy of the license see one of the following 3rd party sites:
+//      - <https://opensource.org/licenses/MIT>
+//      - <https://choosealicense.com/licenses/mit>
+//      - <https://spdx.org/licenses/MIT>
+
+/**
+ * @file Symlink list setting controller.
+ * @author James Reid
+ */
+
+// @ts-check
+
+// @imports-node
 import * as path from "path"
 
+// @imports-dependencies
 import { Setting, setIcon, normalizePath, ButtonComponent } from "obsidian"
 
+// @imports-module
 import { SymlinkSettingController } from "./Base.ts"
 
+// @imports-types
 import type { SymlinkSettings } from "#types"
 import type { Symlink } from "../../main.ts"
 
+// @body
+/**
+ * 
+ */
 class SymlinkSettingListController extends SymlinkSettingController {
     input!: { name: string, description: string }
     setting!: keyof Omit<SymlinkSettings, "isWhitelist">
@@ -16,6 +41,10 @@ class SymlinkSettingListController extends SymlinkSettingController {
     pathname?: string
     button?: ButtonComponent
 
+    /**
+     * 
+     * @param param0 
+     */
     constructor(
         { title, description, container, plugin, input, setting }: {
             title: string,
@@ -30,7 +59,10 @@ class SymlinkSettingListController extends SymlinkSettingController {
         this.settingSet = new Set(this.plugin.settings[this.setting])
     }
 
-    //
+    /**
+     * 
+     * @returns 
+     */
     createController(): HTMLDivElement {        
         //
         const wrapper = this.createWrapper()
@@ -66,8 +98,10 @@ class SymlinkSettingListController extends SymlinkSettingController {
         return wrapper
     }
 
-
-    //
+    /**
+     * 
+     * @returns 
+     */
     createList(): HTMLDivElement {
         //
         const wrapper = document.createElement("div")
@@ -76,7 +110,11 @@ class SymlinkSettingListController extends SymlinkSettingController {
         return wrapper
     }
 
-    //
+    /**
+     * 
+     * @param pathname 
+     * @returns 
+     */
     createListItem(pathname = this.pathname as string): HTMLDivElement {
         //
         const pathnameSpan = document.createElement("span")
@@ -112,6 +150,9 @@ class SymlinkSettingListController extends SymlinkSettingController {
         return wrapper
     }
 
+    /**
+     * 
+     */
     async mountListItem(): Promise<void> {
         const shouldMount = this.shouldMount()
         if (shouldMount) { this.settingSet.add(this.pathname as string) }
@@ -127,8 +168,16 @@ class SymlinkSettingListController extends SymlinkSettingController {
         })
     }
 
+    /**
+     * 
+     * @returns 
+     */
     shouldMount(): boolean { return !this.getButtonTooltip() }
 
+    /**
+     * 
+     * @returns 
+     */
     updateButton(): void {
         if (!this.button) { return }
 
@@ -144,6 +193,10 @@ class SymlinkSettingListController extends SymlinkSettingController {
         else { this.button.setClass("symlink-enabled-button") }
     }
 
+    /**
+     * 
+     * @returns 
+     */
     getButtonTooltip(): string {
         let tooltip = ""
 
@@ -159,4 +212,5 @@ class SymlinkSettingListController extends SymlinkSettingController {
     }
 }
 
+// @exports
 export { SymlinkSettingListController }
