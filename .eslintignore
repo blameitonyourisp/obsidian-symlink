@@ -3,6 +3,7 @@
 
 # Node modules and dot-folders ignored by default by eslint.
 
-# Development and distribution builds.
+# Development and distribution builds and caches.
 build
 dist
+.cache

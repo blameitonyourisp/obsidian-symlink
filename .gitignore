@@ -9,4 +9,4 @@ node_modules
 
 # Development builds and caches.
 build
-.jsdoc-cache
+.cache

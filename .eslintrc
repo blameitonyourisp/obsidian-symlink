@@ -1,23 +1,394 @@
 {
-    "root": true,
-    "parser": "@typescript-eslint/parser",
-    "env": { "node": true },
-    "plugins": [
-        "@typescript-eslint"
-    ],
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended"
-    ], 
+    // This file is an opinionated eslint configuration. In terms of number of
+    // rules specified in this file, it is a reasonably detailed/specific
+    // configuration. For more information for getting started with eslint, see
+    // here: https://eslint.org/docs/latest/use/getting-started. For more
+    // information specifically on configuring eslint with a .eslintrc, see
+    // here: https://eslint.org/docs/latest/use/configure.
+
+    // Language option configuration, for more information, see here: 
+    // https://eslint.org/docs/latest/use/configure/language-options#specifying-environments.
+    "env": {
+        "browser": true,
+        "es2022": true,
+        "node": true
+    },
+
+    // Default option set provided by eslint, which the rules object below 
+    // either add to or overwrite.
+    "extends": "eslint:recommended",
+
+    // Specify language options which should be supported, most notably node
+    // modules instead of commonjs. For more information, see here:
+    // https://eslint.org/docs/latest/use/configure/language-options#specifying-parser-options.
     "parserOptions": {
+        "ecmaVersion": "latest",
         "sourceType": "module"
     },
+
+    // Specify plugins used by this configuration, for more information, see
+    // here: https://eslint.org/docs/latest/use/configure/plugins.
+    "plugins": [
+        "regex",
+        "eslint-comments"
+    ],
+
+    // Overrides of above configuration to allow eslint to additionally find
+    // and parse typescript files.
+    "overrides": [
+        {
+            "files": ["**/*.ts", "**/*.tsx"],
+            "extends": [
+                "eslint:recommended",
+                "plugin:@typescript-eslint/eslint-recommended",
+                "plugin:@typescript-eslint/recommended"
+            ],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "sourceType": "module"
+            },
+            "plugins": [
+                "@typescript-eslint"
+            ]
+        }
+    ],
+
+    // Rules which add to or overwrite the existing default rule set implied by
+    // the "extends" field. For more information on rule configuration, see
+    // here: https://eslint.org/docs/latest/rules. For more information on any
+    // rule set below, see https://eslint.org/docs/latest/rules/<rule-name>.
+    // Note that not ALL rules are explicitly set/unset below.
     "rules": {
-        "no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars": ["error", { "args": "none" }],
-        "@typescript-eslint/ban-ts-comment": "off",
-        "no-prototype-builtins": "off",
-        "@typescript-eslint/no-empty-function": "off"
-    } 
+        // Plugin-specific eslint configurations.
+
+        // Regex plugin configuration used for ensuring that specific patterns
+        // are/are not matched in any given script. For more information on
+        // configuration, see here: https://github.com/gmullerb/eslint-plugin-regex.
+
+        // Invalid regex configuration - i.e. patterns which are not valid in
+        // any script. Plugin provides replacement method for regex/invalid
+        // rules to automatically resolve a given issue. As such these patterns
+        // are preferred over the regex/required patterns.
+        "regex/invalid": ["error", [
+            // Ensure that each file starts with the required header, including
+            // license text, jsdoc file description, and @ts-check or
+            // @ts-nocheck directive (in listed order). Note that no rules are
+            // included to check for/prevent duplicate header elements
+            // elsewhere in a script, although these should be very obvious to
+            // spot any time someone is working on a given script.
+            {
+                "id": "noMissingScriptHeader",
+                "regex": "(?<!.|\n)(?!\/\/ Copyright \\(c\\) \\d{4} .*\\. All rights reserved\\.\n\/\/\n\/\/ This source code file is licensed under the terms of the MIT license, a copy\n\/\/ of which may be found in the LICENSE\\.md file in the root of this repository\\.\n\/\/\n\/\/ For a template copy of the license see one of the following 3rd party sites:\n\/\/ {6}- <https:\/\/opensource\\.org\/licenses\/MIT>\n\/\/ {6}- <https:\/\/choosealicense\\.com\/licenses\/mit>\n\/\/ {6}- <https:\/\/spdx\\.org\/licenses\/MIT>\n\n\/\\*\\*\\s*\n([^\\*]|(\\*(?!\/)))*\\s*\\*\\s*@file\\s.*\n([^\\*]|(\\*(?!(\/)|(\\s*@))))*(\\s*\\*\\s*@author\\s.*\n)+\\s*\\*\/\n\n\/\/ (@ts-check|@ts-nocheck)(\n| .*\n)\n)",
+                "message": "Script must start with license information, file description, and @ts-check or @ts-nocheck directive.",
+                "replacement": {
+                    // Insert placeholder header at start of file.
+                    "function": "return `// Copyright (c) <INSERT_YEAR_HERE> <INSERT_OWNER_HERE>. All rights reserved.\n//\n// This source code file is licensed under the terms of the MIT license, a copy\n// of which may be found in the LICENSE.md file in the root of this repository.\n//\n// For a template copy of the license see one of the following 3rd party sites:\n//      - <https://opensource.org/licenses/MIT>\n//      - <https://choosealicense.com/licenses/mit>\n//      - <https://spdx.org/licenses/MIT>\n\n/**\n * @file <INSERT_FILE_DESCRIPTION_HERE>\n * @author <INSERT_AUTHOR_HERE>\n */\n\n// @ts-check\n\n`"
+                }
+            },
+
+            // Ensure that all placeholder header details have been populated
+            // when the header has been added using the regex/invalid
+            // replacement function.
+            {
+                "id": "noMissingHeaderDetails",
+                "regex": "(?<=\/\/.*|\/\\*\\*.*\n([^\\*]|(\\*(?!\/)))*\\s*\\*.*)<INSERT_[_A-Z]*_HERE>",
+                "message": "All header details must be populated."
+            },
+
+            // Ensure that no invalid block tags are used in a scripts (mainly
+            // for enforcing correct block tags when using multiple import
+            // blocks).
+            {
+                "id": "noInvalidBlockTags",
+                "regex": "(?<=\/\/ )@@(?!(no-)?(body|exports)|no-imports|imports(-(node|dependencies|utils|package|module|submodule|types))?)",
+                "message": "Invalid @@<block> block tags not permitted. Remove block tag, or use a valid tag.",
+                "replacement": {
+                    // Remove @@ in front of matched invalid tag.
+                    "function": "return ``"
+                }
+            },
+
+            // Ensure that no block tag has a description (i.e. a newline
+            // character immediately follows the end of the tag).
+            {
+                "id": "noBlockTagDescriptions",
+                "regex": "(?<=\/\/ @@[-a-z]*) .*",
+                "message": "Block tag descriptions are not permitted.",
+                "replacement": {
+                    // Remove any matched block tag description.
+                    "function": "return ``"
+                }
+            },
+
+            // Ensure that every block tag is preceded by a blank line. New
+            // lines AFTER block tags at the end of a file are enforced by
+            // the eslint "eol-last" setting.
+            {
+                "id": "noBlockTagPreviousLine",
+                "regex": "(?<!\n\n)\/\/ @@.*",
+                "message": "Block tags must be preceded by a blank line.",
+                "replacement": {
+                    // Insert extra newline before matched tag.
+                    "function": "return `\n${text}`"
+                }
+            },
+
+            // Ensure that any block with the "no-" prefix has no content
+            // contained within it before the start of the next block.
+            {
+                "id": "noUsedEmptyBlocks",
+                "regex": "(?<=\/\/ @@)no-.*(?=\n)(?!\n*(\/\/ @@.*|$(?!\n)))",
+                "message": "Cannot use @@no-<block> to mark a non-empty block, use @@<block> instead.",
+                "replacement": {
+                    // Remove "no-" prefix from matched tag.
+                    "function": "return `${text.replace('no-', '')}`"
+                }
+            },
+
+            // Ensure that any block without the "no-" prefix has some content
+            // contained within it before the start of the next block.
+            {
+                "id": "noUnusedBlocks",
+                "regex": "(?<=\/\/ @@)[^no-].*(?=\n*(\/\/ @@.*|$(?!\n)))",
+                "message": "Cannot use @@<block> to mark an empty block, use @@no-<block> instead.",
+                "replacement": {
+                    // Add "no-" prefix tp matched tag.
+                    "function": "return `no-${text}`"
+                }
+            },
+
+            // Ensure that body or export blocks do not appear more than once
+            // in a given script.
+            {
+                "id": "noDuplicateUniqueBlocks",
+                "regex": "(?<=\/\/ @@(no-)?body(.*\n)*)\/\/ @@(no-)?body|(?<=\/\/ @@(no-)?exports(.*\n)*)\/\/ @@(no-)?exports",
+                "message": "Unique blocks @@body and @@export cannot appear more than once in a script.",
+                "replacement": {
+                    // Remove duplicate matched tag.
+                    "function": "return ``"
+                }
+            },
+
+            // Ensure that every script has one or more import block(s), a
+            // body block, and and export block. Additionally ensures that
+            // these blocks appear in the correct order.
+            {
+                "id": "noMissingBlocks",
+                "regex": "(?<!.|\n)(?!(.*\n)*\/\/ @@(no-)?imports(.*\n)*\/\/ @@(no-)?body(.*\n)*\/\/ @@(no-)?exports)",
+                "message": "One or mor @@<block> tags missing, or blocks are in incorrect order."
+            }
+        ]],
+
+        // No configuration for regex/required since absence of a given pattern
+        // causes an error which highlights the whole file, which can be a
+        // little frustrating. Additionally, the regex/required patterns cannot
+        // be automatically fixed with the replacement option.
+
+        // Plugin configuration for the eslint-comments plugin, mainly for
+        // ensuring that there are no unused, unrestricted or unclosed eslint
+        // directives. For more information, please see the plugin page here:
+        // https://mysticatea.github.io/eslint-plugin-eslint-comments/.
+
+        // Best practice rules for eslint-comments plugin.
+        "eslint-comments/disable-enable-pair": "error",
+        "eslint-comments/no-aggregating-enable": "off",
+        "eslint-comments/no-duplicate-disable": "error",
+        "eslint-comments/no-unlimited-disable": "error",
+        "eslint-comments/no-unused-disable": "error",
+        "eslint-comments/no-unused-enable": "error",
+
+        // Stylistic suggestions for eslint-comments plugin.
+        "eslint-comments/no-restricted-disable": "off",
+        "eslint-comments/no-use": "off",
+        "eslint-comments/require-description": "error",
+
+        // Eslint "problems" relating to possible logic errors in code. Most
+        // rules turned on by default, the following configuration turns off
+        // or changes inconvenient default settings. For more information, see
+        // here: https://eslint.org/docs/latest/rules/#possible-problems.
+        "no-control-regex": "off",
+        "no-duplicate-imports": "error",
+        "no-ex-assign": "off",
+        "no-unused-private-class-members": "error",
+
+        // Eslint "suggestions" relating to alternate ways of organising code
+        // which will not give rise to logical errors if not followed, but may
+        // be preferable for reducing unnecessary blocks, or enforcing naming
+        // conventions etc. Most rules in this category are disabled by
+        // default, and this configuration only enables a selection. For more
+        // information on all available rules in this category, see here:
+        // https://eslint.org/docs/latest/rules/#suggestions.
+        "curly": ["error", "all"],
+        "default-case": ["error", {
+            "commentPattern": "^@no-default"
+        }],
+        "default-case-last": "error",
+        "default-param-last": "error",
+        "eqeqeq": "error",
+        "func-style": ["error", "declaration", {
+            "allowArrowFunctions": true
+        }],
+        "grouped-accessor-pairs": "error",
+        "guard-for-in": "off",
+        "id-denylist": ["error", "err", "e", "ev", "cb"],
+        "id-match": ["error", "(^[A-Z]?[a-z]+([A-Z][a-z]+)*$)|(^([A-Z]+_?)*$)", {
+            "properties": false,
+            "classFields": false,
+            "onlyDeclarations": true,
+            "ignoreDestructuring": true
+        }],
+        "multiline-comment-style": ["error", "separate-lines"],
+        "new-cap": ["error", {
+            "newIsCap": true,
+            "capIsNew": true,
+            "capIsNewExceptions": ["Array"]
+        }],
+        "no-else-return": "error",
+        "no-extra-label": "error",
+        "no-label-var": "error",
+        "no-lone-blocks": "error",
+        "no-useless-return": "error",
+        "no-var": "error",
+        "prefer-const": "error",
+        "spaced-comment": ["error", "always"],
+        "yoda": "error",
+
+        // Eslint "layout" rules which have no impact on how the code runs, and
+        // only relate to how the code appears in the editor. The majority of
+        // these rules are turned off by default, and this configuration sets
+        // ALL rules in this category. If the rule should remain off, this
+        // configuration explicitly sets it to off below. For more information,
+        // see here: https://eslint.org/docs/latest/rules/#layout--formatting.
+        "array-bracket-newline": ["error", "consistent"],
+        "array-bracket-spacing": ["error", "never"],
+        "array-element-newline": ["error", "consistent"],
+        "arrow-parens": ["error", "as-needed"],
+        "arrow-spacing": ["error", {
+            "before": true,
+            "after": true
+        }],
+        "block-spacing": ["error", "always"],
+        "brace-style": ["error", "stroustrup", {
+            "allowSingleLine": true
+        }],
+        "comma-dangle": ["error", "only-multiline"],
+        "comma-spacing": ["error", {
+            "before": false,
+            "after": true
+        }],
+        "comma-style": ["error", "last"],
+        "computed-property-spacing": ["error", "never", {
+            "enforceForClassMembers": true
+        }],
+        "dot-location": ["error", "property"],
+        "eol-last": ["error", "always"],
+        "func-call-spacing": ["error", "never"],
+        "function-call-argument-newline": ["error", "consistent"],
+        "function-paren-newline": ["error", "consistent"],
+        "generator-star-spacing": ["error", {
+            "before": false,
+            "after": true
+        }],
+        "implicit-arrow-linebreak": ["error", "beside"],
+        "indent": ["error", 4, {
+            "ignoredNodes": ["ConditionalExpression"],
+            "SwitchCase": 1
+        }],
+        "jsx-quotes": ["error", "prefer-double"],
+        "key-spacing": ["error", {
+            "beforeColon": false,
+            "afterColon": true,
+            "mode": "strict"
+        }],
+        "keyword-spacing": ["error", {
+            "before": true,
+            "after": true
+        }],
+        "line-comment-position": ["off"],
+        "linebreak-style": ["error", "unix"],
+        "lines-around-comment": ["off"],
+        "lines-between-class-members": ["error", "always"],
+        "max-len": ["error", {
+            "code": 80,
+            "tabWidth": 4,
+            "comments": 80,
+            "ignorePattern": "^.*@no-wrap$",
+            "ignoreUrls": true,
+            "ignoreStrings": true,
+            "ignoreTemplateLiterals": true,
+            "ignoreRegExpLiterals": true
+        }],
+        "new-parens": ["error", "always"],
+        "newline-per-chained-call": ["error", {
+            "ignoreChainWithDepth": 3
+        }],
+        "no-extra-parens": ["off"],
+        "no-mixed-spaces-and-tabs": "error",
+        "no-multi-spaces": ["error", {
+            "ignoreEOLComments": false,
+            "exceptions": { "Property": false } 
+        }],
+        "no-multiple-empty-lines": ["error", {
+            "max": 1,
+            "maxEOF": 1,
+            "maxBOF": 1
+        }],
+        "no-tabs": "error",
+        "no-trailing-spaces": ["error", {
+            "skipBlankLines": false,
+            "ignoreComments": false
+        }],
+        "no-whitespace-before-property": "error",
+        "nonblock-statement-body-position": ["error", "beside"],
+        "object-curly-newline": ["error", {
+            "consistent": true
+        }],
+        "object-curly-spacing": ["error", "always"],
+        "operator-linebreak": ["error", "after", {
+            "overrides": { 
+                ":": "before",
+                "?": "before"
+            }
+        }],
+        "padded-blocks": ["error", "never"],
+        "padding-line-between-statements": ["off"],
+        "quotes": ["error", "double"],
+        "rest-spread-spacing": ["error", "never"],
+        "semi": ["error", "never"],
+        "semi-spacing": ["error", {
+            "before": false,
+            "after": false
+        }],
+        "semi-style": ["error", "last"],
+        "space-before-blocks": ["error", "always"],
+        "space-before-function-paren": ["error", {
+            "anonymous": "always",
+            "named": "never",
+            "asyncArrow": "always"
+        }],
+        "space-in-parens": ["error", "never"],
+        "space-infix-ops": "error",
+        "space-unary-ops": ["error", {
+            "words": true,
+            "nonwords": true,
+            "overrides": {
+                "++": false,
+                "--": false,
+                "!": false,
+                "~": false
+            }
+        }],
+        "switch-colon-spacing": ["error", {
+            "before": false,
+            "after": true
+        }],
+        "template-curly-spacing": ["error", "never"],
+        "template-tag-spacing": ["error", "never"],
+        "unicode-bom": ["error", "never"],
+        "wrap-iife": ["error", "inside"],
+        "yield-star-spacing": ["error", {
+            "before": false,
+            "after": true
+        }]
+    }
 }
