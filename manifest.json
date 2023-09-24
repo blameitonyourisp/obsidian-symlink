@@ -2,8 +2,8 @@
 	"id": "symlink",
 	"name": "Symlink",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Symlink markdown files for ",
+	"minAppVersion": "1.0.0",
+	"description": "Symlink local markdown documentation files to edit them without opening a vault in each repository.",
 	"author": "James Reid",
 	"authorUrl": "https://blameitonyourisp.com",
 	"isDesktopOnly": true
