@@ -12,10 +12,10 @@
 		"lint": "npm run lint:check",
 		"lint:check": "eslint src",
 		"lint:fix": "eslint src --fix",
-		"types": "tsc",
+		"postversion": "git push --follow-tags",
 		"preversion": "npm run build:prod",
 		"version": "node admin/scripts/version.js && git add manifest.json versions.json",
-		"postversion": "git push --follow-tags"
+		"types": "tsc"
 	},
 	"keywords": [
 		"obsidian",
