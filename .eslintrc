@@ -307,7 +307,14 @@
         "line-comment-position": ["off"],
         "linebreak-style": ["error", "unix"],
         "lines-around-comment": ["off"],
-        "lines-between-class-members": ["error", "always"],
+        "lines-between-class-members": ["error", {
+            "enforce": [
+                { "blankLine": "always", "prev": "method", "next": "method" },
+                { "blankLine": "always", "prev": "method", "next": "field" },
+                { "blankLine": "always", "prev": "field", "next": "method" },
+                { "blankLine": "never", "prev": "field", "next": "field" }
+            ]
+        }],
         "max-len": ["error", {
             "code": 80,
             "tabWidth": 4,
