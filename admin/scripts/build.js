@@ -45,7 +45,12 @@ const copyCustomFilesPlugin = {
     setup(/** @type {esbuild.PluginBuild} */ build) {
         build.onEnd(() => {
             // Determine destination directory based on if in production.
-            const dirname = isProd ? "dist" : "build/plugin"
+            const dirname = isProd ? "dist/plugin" : "build/plugin"
+
+            // Ensure destination directory exists.
+            if (!fs.existsSync(dirname)) {
+                fs.mkdirSync(dirname, { recursive: true })
+            }
 
             // Copy style and manifest files required for obsidian plugin to the
             // appropriate directory. Note that the files are copied from
@@ -82,7 +87,7 @@ const context = await esbuild.context({
     format: "cjs",
     lineLimit: 80,
     logLevel: "info",
-    outfile: isProd ? "dist/main.js" : "build/plugin/main.js",
+    outfile: isProd ? "dist/plugin/main.js" : "build/plugin/main.js",
     plugins: [
         copyCustomFilesPlugin
     ],
