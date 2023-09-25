@@ -444,7 +444,7 @@ var Symlink = class extends import_obsidian5.Plugin {
     __publicField(this, "fileTreeObserver");
   }
   /**
-   *
+   * Setup plugin.
    */
   async onload() {
     this.vaultDirname = this.app.vault.adapter.basePath;
@@ -463,35 +463,40 @@ var Symlink = class extends import_obsidian5.Plugin {
     this.app.workspace.onLayoutReady(() => this.watchTree());
   }
   /**
-   *
+   * Clean up DOM event listeners etc. when the plugin is unloaded. Also save
+   * current settings to ensure that the saved settings are synced.
    */
   async onunload() {
     this.unwatchTree();
     await this.saveSettings();
   }
   /**
-   *
+   * Load settings from plugin data.json file.
    */
   async loadSettings() {
     this.settings = Object.assign(DEFAULT_SETTINGS, await this.loadData());
   }
   /**
-   *
+   * Save settings to plugin data.json file.
    */
   async saveSettings() {
     await this.saveData(this.settings);
   }
   /**
-   *
+   * Get all available repos from the parent directory of this vault, and
+   * update filtered repos based on current user settings.
    */
   updateRepos() {
     this.repos = this.getRepos();
     this.filteredRepos = this.filterRepos();
   }
   /**
+   * Index all repository directories within the parent directory of this
+   * vault.
    *
-   * @param dirname
-   * @returns
+   * @param dirname - Parent directory in which to look for git repositories.
+   * @returns Array of relative paths from parent directory of this vault to
+   *      all repositories found within that directory.
    */
   getRepos(dirname = this.localDirname) {
     const repos = [];
@@ -502,7 +507,8 @@ var Symlink = class extends import_obsidian5.Plugin {
       }
       if (fs.statSync(absolutePath).isFile()) {
         continue;
-      } else if (fs.existsSync(`${absolutePath}/.git`)) {
+      }
+      if (fs.existsSync(`${absolutePath}/.git`)) {
         repos.push(path2.relative(this.localDirname, absolutePath));
         continue;
       }
@@ -511,8 +517,11 @@ var Symlink = class extends import_obsidian5.Plugin {
     return repos;
   }
   /**
+   * Filter indexed repositories based on user settings of repository paths
+   * which should be explicitly included/ignored, and based on if whitelist
+   * mode is activated.
    *
-   * @returns
+   * @returns Filtered array of indexed repositories.
    */
   filterRepos() {
     const filteredRepos = [];
