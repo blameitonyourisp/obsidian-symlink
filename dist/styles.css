@@ -1,0 +1,16 @@
+.symlink-setting-title {
+    font-size: var(--font-ui-large);
+    margin-bottom: 0.75em;
+}
+
+.tree-symlink-icon {
+    position: relative !important;
+    margin-left: auto !important;
+    margin-right: 0;
+}
+
+.symlink-disabled-button {
+    background-color: var(--color-base-30) !important;
+    box-shadow: none !important;
+    color: var(--text-faint);
+}

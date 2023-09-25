@@ -1,4 +1,4 @@
-// Copyright (c) 2022 James Reid. All rights reserved.
+// Copyright (c) 2023 James Reid. All rights reserved.
 //
 // This source code file is licensed under the terms of the MIT license, a copy
 // of which may be found in the LICENSE.md file in the root of this repository.
@@ -16,9 +16,9 @@
 
 // @ts-check
 
-// @no-imports
+// @@no-imports
 
-// @no-body
+// @@no-body
 
-// @exports
+// @@exports
 export * from "./SymlinkSettings.ts"

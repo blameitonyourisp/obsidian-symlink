@@ -1,4 +1,4 @@
-// Copyright (c) 2022 James Reid. All rights reserved.
+// Copyright (c) 2023 James Reid. All rights reserved.
 //
 // This source code file is licensed under the terms of the MIT license, a copy
 // of which may be found in the LICENSE.md file in the root of this repository.
@@ -15,26 +15,26 @@
 
 // @ts-check
 
-// @imports-dependencies
+// @@imports-dependencies
 import { Setting } from "obsidian"
 
-// @imports-module
+// @@imports-module
 import { SymlinkSettingListController } from "./List.ts"
 
-// @imports-types
+// @@imports-types
 import type { SymlinkSettings } from "#types"
 import type { Symlink } from "../../main.ts"
 
-// @body
+// @@body
 /**
- * 
+ *
  */
 class SymlinkSettingDropdownController extends SymlinkSettingListController {
     options!: { value: string, display: string }[]
 
     /**
-     * 
-     * @param param0 
+     *
+     * @param param0
      */
     constructor(
         { title, description, container, plugin, input, setting, options }: {
@@ -45,14 +45,15 @@ class SymlinkSettingDropdownController extends SymlinkSettingListController {
             input: { name: string, description: string }
             setting: keyof Omit<SymlinkSettings, "isWhitelist">,
             options: { value: string, display: string }[]
-    }) {
+        }
+    ) {
         super({ title, description, container, plugin, input, setting })
         Object.assign(this, { options })
     }
 
     /**
-     * 
-     * @returns 
+     *
+     * @returns
      */
     createController(): HTMLDivElement {
         //
@@ -91,5 +92,5 @@ class SymlinkSettingDropdownController extends SymlinkSettingListController {
     }
 }
 
-// @exports
+// @@exports
 export { SymlinkSettingDropdownController }

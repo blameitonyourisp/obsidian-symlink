@@ -1,4 +1,4 @@
-// Copyright (c) 2022 James Reid. All rights reserved.
+// Copyright (c) 2023 James Reid. All rights reserved.
 //
 // This source code file is licensed under the terms of the MIT license, a copy
 // of which may be found in the LICENSE.md file in the root of this repository.
@@ -15,17 +15,17 @@
 
 // @ts-check
 
-// @imports-types
+// @@imports-types
 import type { SymlinkSettings } from "#types"
 
-// @body
+// @@body
 const DEFAULT_SETTINGS: SymlinkSettings = {
-	repositoryDirIgnore: ["node_modules", ".git"],
+    repositoryDirIgnore: ["node_modules", ".git"],
     repositoryDirLink: ["docs"],
     repositoryIgnore: [],
     repositoryInclude: [],
     isWhitelist: true
 }
 
-// @exports
+// @@exports
 export { DEFAULT_SETTINGS }

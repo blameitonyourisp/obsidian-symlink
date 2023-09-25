@@ -1,4 +1,4 @@
-// Copyright (c) 2022 James Reid. All rights reserved.
+// Copyright (c) 2023 James Reid. All rights reserved.
 //
 // This source code file is licensed under the terms of the MIT license, a copy
 // of which may be found in the LICENSE.md file in the root of this repository.
@@ -15,27 +15,27 @@
 
 // @ts-check
 
-// @imports-dependencies
+// @@imports-dependencies
 import { Setting } from "obsidian"
 
-// @imports-module
+// @@imports-module
 import { SymlinkSettingController } from "./Base.ts"
 
-// @imports-types
+// @@imports-types
 import type { SymlinkSettings } from "#types"
 import type { Symlink } from "../../main.ts"
 
-// @body
+// @@body
 /**
- * 
+ *
  */
 class SymlinkSettingToggleController extends SymlinkSettingController {
     input!: { name: string, description: string }
     setting!: keyof Pick<SymlinkSettings, "isWhitelist">
 
     /**
-     * 
-     * @param param0 
+     *
+     * @param param0
      */
     constructor(
         { title, description, container, plugin, input, setting }: {
@@ -45,24 +45,25 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
             plugin: Symlink,
             input: { name: string, description: string }
             setting: keyof Pick<SymlinkSettings, "isWhitelist">
-    }) {
+        }
+    ) {
         super({ title, description, container, plugin })
         Object.assign(this, { input, setting })
     }
 
     /**
-     * 
-     * @returns 
+     *
+     * @returns
      */
-    createController(): HTMLDivElement {        
+    createController(): HTMLDivElement {
         //
         const wrapper = this.createWrapper()
 
         //
         let isToggled: boolean = this.plugin.settings[this.setting]
         new Setting(wrapper)
-			.setName(this.input.name)
-			.setDesc(this.input.description)
+            .setName(this.input.name)
+            .setDesc(this.input.description)
             .addToggle(toggleComponent => {
                 toggleComponent.setValue(isToggled)
                     .onChange(async toggleValue => {
@@ -79,5 +80,5 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
     }
 }
 
-// @exports
+// @@exports
 export { SymlinkSettingToggleController }

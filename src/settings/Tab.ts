@@ -1,4 +1,4 @@
-// Copyright (c) 2022 James Reid. All rights reserved.
+// Copyright (c) 2023 James Reid. All rights reserved.
 //
 // This source code file is licensed under the terms of the MIT license, a copy
 // of which may be found in the LICENSE.md file in the root of this repository.
@@ -15,47 +15,47 @@
 
 // @ts-check
 
-// @imports-dependencies
+// @@imports-dependencies
 import { App, PluginSettingTab } from "obsidian"
 
-// @imports-submodule
-import { 
-    SymlinkSettingListController, 
+// @@imports-submodule
+import {
+    SymlinkSettingListController,
     SymlinkSettingDropdownController,
     SymlinkSettingToggleController
 } from "#settings/controllers"
 
-// @imports-types
+// @@imports-types
 import type { Symlink } from "../main.ts"
 
-// @body
+// @@body
 /**
- * 
+ *
  */
 class SymlinkSettingsTab extends PluginSettingTab {
-	plugin: Symlink
+    plugin: Symlink
 
     /**
-     * 
-     * @param app 
-     * @param plugin 
+     *
+     * @param app
+     * @param plugin
      */
-	constructor(app: App, plugin: Symlink) {
-		super(app, plugin)
-		this.plugin = plugin
-	}
+    constructor(app: App, plugin: Symlink) {
+        super(app, plugin)
+        this.plugin = plugin
+    }
 
     /**
-     * 
+     *
      */
-	display(): void {
-		const { containerEl } = this
-		containerEl.empty()
+    display(): void {
+        const { containerEl } = this
+        containerEl.empty()
 
         const repos = this.plugin.getRepos().map(pathname => {
             return { value: pathname, display: pathname }
         })
-        
+
         new SymlinkSettingListController({
             title: "",
             description: "",
@@ -69,7 +69,7 @@ class SymlinkSettingsTab extends PluginSettingTab {
             },
             setting: "repositoryDirIgnore"
         }).mount()
-        
+
         new SymlinkSettingListController({
             title: "",
             description: "",
@@ -83,7 +83,7 @@ class SymlinkSettingsTab extends PluginSettingTab {
             },
             setting: "repositoryDirLink"
         }).mount()
-        
+
         new SymlinkSettingDropdownController({
             title: "",
             description: "",
@@ -99,7 +99,7 @@ class SymlinkSettingsTab extends PluginSettingTab {
             setting: "repositoryIgnore",
             options: repos
         }).mount()
-        
+
         new SymlinkSettingDropdownController({
             title: "",
             description: "",
@@ -115,7 +115,7 @@ class SymlinkSettingsTab extends PluginSettingTab {
             setting: "repositoryInclude",
             options: repos
         }).mount()
-        
+
         new SymlinkSettingToggleController({
             title: "",
             description: "",
@@ -128,8 +128,8 @@ class SymlinkSettingsTab extends PluginSettingTab {
             },
             setting: "isWhitelist"
         }).mount()
-	}
+    }
 }
 
-// @exports
+// @@exports
 export { SymlinkSettingsTab }

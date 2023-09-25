@@ -1,4 +1,4 @@
-// Copyright (c) 2022 James Reid. All rights reserved.
+// Copyright (c) 2023 James Reid. All rights reserved.
 //
 // This source code file is licensed under the terms of the MIT license, a copy
 // of which may be found in the LICENSE.md file in the root of this repository.
@@ -15,12 +15,12 @@
 
 // @ts-check
 
-// @imports-package
+// @@imports-package
 import type { Symlink } from "../../main.ts"
 
-// @body
+// @@body
 /**
- * 
+ *
  */
 class SymlinkSettingController {
     title!: string
@@ -29,8 +29,8 @@ class SymlinkSettingController {
     plugin!: Symlink
 
     /**
-     * 
-     * @param param0 
+     *
+     * @param param0
      */
     constructor(
         { title, description, container, plugin }: {
@@ -38,13 +38,14 @@ class SymlinkSettingController {
             description: string,
             container: HTMLElement,
             plugin: Symlink
-    }) {
+        }
+    ) {
         Object.assign(this, { title, description, container, plugin })
     }
 
     /**
-     * 
-     * @returns 
+     *
+     * @returns
      */
     createWrapper(): HTMLDivElement {
         const title = document.createElement("div")
@@ -58,20 +59,20 @@ class SymlinkSettingController {
         wrapper.classList.add("symlink-setting-controller")
         wrapper.append(title, description)
 
-        return wrapper 
+        return wrapper
     }
 
     /**
-     * 
-     * @returns 
+     *
+     * @returns
      */
     createController(): HTMLDivElement { return this.createWrapper() }
 
     /**
-     * 
+     *
      */
     mount() { this.container.appendChild(this.createController()) }
 }
 
-// @exports
+// @@exports
 export { SymlinkSettingController }

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 James Reid. All rights reserved.
+// Copyright (c) 2023 James Reid. All rights reserved.
 //
 // This source code file is licensed under the terms of the MIT license, a copy
 // of which may be found in the LICENSE.md file in the root of this repository.
@@ -15,52 +15,52 @@
 
 // @ts-check
 
-// @imports-node
+// @@imports-node
 import * as fs from "fs"
 import * as path from "path"
 
-// @imports-dependencies
+// @@imports-dependencies
 import { Plugin, setIcon } from "obsidian"
 
-// @imports-package
+// @@imports-package
 import { DEFAULT_SETTINGS, SymlinkSettingsTab } from "#settings"
 
-// @imports-types
+// @@imports-types
 import type { SymlinkSettings } from "#types"
 
-// @body
+// @@body
 /**
  * Obsidian symlink plugin. Allows users to
  */
 class Symlink extends Plugin {
     vaultDirname!: string
     localDirname!: string
-	settings!: SymlinkSettings
+    settings!: SymlinkSettings
     repos!: string[]
     filteredRepos!: string[]
     fileTree!: HTMLDivElement
     fileTreeObserver!: MutationObserver
 
     /**
-     * 
+     *
      */
-	async onload(): Promise<void> {
+    async onload(): Promise<void> {
         // @ts-expect-error basePath exists on adapter object at runtime
         this.vaultDirname = this.app.vault.adapter.basePath
         this.localDirname = path.join(this.vaultDirname, "../")
 
         // Load setting from plugin data.json file, and add setting tab to
         // allow user to view and update plugin settings.
-		await this.loadSettings()
-		this.addSettingTab(new SymlinkSettingsTab(this.app, this))
+        await this.loadSettings()
+        this.addSettingTab(new SymlinkSettingsTab(this.app, this))
 
         //
         this.updateRepos()
 
-		// Called when the user clicks the icon.
-		this.addRibbonIcon("folder-symlink", "Symlink repositories", () => {
+        // Called when the user clicks the icon.
+        this.addRibbonIcon("folder-symlink", "Symlink repositories", () => {
             this.symlinkRepos()
-		})
+        })
 
         this.addCommand({
             id: "obsidian-symlink-repos",
@@ -69,30 +69,30 @@ class Symlink extends Plugin {
         })
 
         this.app.workspace.onLayoutReady(() => this.watchTree())
-	}
-
-    /**
-     * 
-     */
-	async onunload(): Promise<void> { 
-        this.unwatchTree()
-        await this.saveSettings() 
     }
 
     /**
-     * 
+     *
+     */
+    async onunload(): Promise<void> {
+        this.unwatchTree()
+        await this.saveSettings()
+    }
+
+    /**
+     *
      */
     async loadSettings(): Promise<void> {
-		this.settings = Object.assign(DEFAULT_SETTINGS, await this.loadData())
-	}
+        this.settings = Object.assign(DEFAULT_SETTINGS, await this.loadData())
+    }
 
     /**
-     * 
+     *
      */
-	async saveSettings(): Promise<void> { await this.saveData(this.settings) }
+    async saveSettings(): Promise<void> { await this.saveData(this.settings) }
 
     /**
-     * 
+     *
      */
     updateRepos() {
         this.repos = this.getRepos()
@@ -100,9 +100,9 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @param dirname 
-     * @returns 
+     *
+     * @param dirname
+     * @returns
      */
     getRepos(dirname = this.localDirname): string[] {
         const repos: string[] = []
@@ -121,8 +121,8 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @returns 
+     *
+     * @returns
      */
     filterRepos(): string[] {
         const filteredRepos: string[] = []
@@ -140,16 +140,16 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @param repo 
-     * @param searchVault 
-     * @param dir 
-     * @returns 
+     *
+     * @param repo
+     * @param searchVault
+     * @param dir
+     * @returns
      */
     getRepoFiles(repo: string, searchVault = false, dir = ""): string[] {
         const dirname = path.join(
-            searchVault ? this.vaultDirname : this.localDirname, 
-            repo, 
+            searchVault ? this.vaultDirname : this.localDirname,
+            repo,
             dir
         )
         const files: string[] = []
@@ -158,8 +158,8 @@ class Symlink extends Plugin {
             const absolutePath = path.join(dirname, pathname)
             const relativePath = path.join(dir, pathname)
             if (fs.statSync(absolutePath).isFile()) {
-                if (path.extname(absolutePath) === ".md") { 
-                    files.push(relativePath) 
+                if (path.extname(absolutePath) === ".md") {
+                    files.push(relativePath)
                 }
                 continue
             }
@@ -167,7 +167,7 @@ class Symlink extends Plugin {
             for (const pathname of this.settings.repositoryDirIgnore) {
                 if (relativePath.includes(pathname)) {
                     // replace with ends with
-                    shouldIgnore = true 
+                    shouldIgnore = true
                     break
                 }
             }
@@ -178,11 +178,11 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
+     *
      */
     symlinkRepos(): void {
         this.updateRepos()
-        for (const repo of this.repos) { 
+        for (const repo of this.repos) {
             if ((this.filteredRepos).includes(repo)) {
                 if (!fs.existsSync(path.join(this.vaultDirname, repo))) {
                     this.symlinkRepo(repo)
@@ -196,14 +196,14 @@ class Symlink extends Plugin {
                     })
                     this.removeVaultRepo(repo)
                 }
-            }  
-            else { this.removeVaultRepo(repo) } 
+            }
+            else { this.removeVaultRepo(repo) }
         }
     }
 
     /**
-     * 
-     * @param repo 
+     *
+     * @param repo
      */
     symlinkRepo(repo: string): void {
         // Add vault directory
@@ -220,15 +220,15 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @param repo 
+     *
+     * @param repo
      */
     removeVaultRepo(repo: string): void {
         let vaultPath = path.join(this.vaultDirname, repo)
 
         if (fs.existsSync(vaultPath)) {
             fs.rmSync(vaultPath, { recursive: true, force: true })
-        }  
+        }
 
         // clear parents if empty
         while (repo) {
@@ -240,12 +240,12 @@ class Symlink extends Plugin {
                 // safer since will error if has contents
                 fs.rmdirSync(vaultPath)
             }
-        } 
+        }
     }
 
     /**
-     * 
-     * @param repo 
+     *
+     * @param repo
      */
     addVaultRepo(repo: string): void {
         const vaultPath = path.join(this.vaultDirname, repo)
@@ -256,10 +256,10 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @param repo 
-     * @param link 
-     * @returns 
+     *
+     * @param repo
+     * @param link
+     * @returns
      */
     symlinkRepoDirectory(repo: string, link: string): void {
         const target = path.join(this.localDirname, repo, link)
@@ -270,7 +270,7 @@ class Symlink extends Plugin {
 
         if (!fs.existsSync(parentPath)) {
             fs.mkdirSync(parentPath, { recursive: true })
-        } 
+        }
         if (fs.existsSync(destination)) { fs.rmdirSync(destination) }
 
         // Add backoff in else if block?
@@ -278,10 +278,10 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @param repo 
-     * @param file 
-     * @returns 
+     *
+     * @param repo
+     * @param file
+     * @returns
      */
     symlinkFile(repo: string, file: string): void {
         const target = path.join(this.localDirname, repo, file)
@@ -289,9 +289,9 @@ class Symlink extends Plugin {
 
         let shouldIgnore = false
         for (const pathname of this.settings.repositoryDirLink) {
-            if (file.includes(pathname)) { 
+            if (file.includes(pathname)) {
                 // replace with starts with
-                shouldIgnore = true 
+                shouldIgnore = true
                 break
             }
         }
@@ -302,7 +302,7 @@ class Symlink extends Plugin {
 
         if (!fs.existsSync(parentPath)) {
             fs.mkdirSync(parentPath, { recursive: true })
-        } 
+        }
         if (fs.existsSync(destination)) { fs.rmSync(destination) }
 
         // Add backoff in else if block?
@@ -310,8 +310,8 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @returns 
+     *
+     * @returns
      */
     watchTree(): void {
         const tree = document.querySelector(".nav-files-container")
@@ -342,9 +342,9 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @param observer 
-     * @returns 
+     *
+     * @param observer
+     * @returns
      */
     unwatchTree(observer = this.fileTreeObserver): void {
         if (!observer) { return }
@@ -352,9 +352,9 @@ class Symlink extends Plugin {
     }
 
     /**
-     * 
-     * @param tree 
-     * @returns 
+     *
+     * @param tree
+     * @returns
      */
     highlightTree(tree = this.fileTree): void {
         if (!tree) { return }
@@ -365,7 +365,7 @@ class Symlink extends Plugin {
             let isLinked = true
             let isIgnored = false
             for (const repo of this.filteredRepos) {
-                if (dataPath.startsWith(repo)) { 
+                if (dataPath.startsWith(repo)) {
                     shouldHighlight = true
                     isLinked = this.settings.repositoryDirLink.includes(
                         path.relative(repo, dataPath)
@@ -384,24 +384,26 @@ class Symlink extends Plugin {
             }
 
             //
-            const icon = (tree.querySelector(".tree-symlink-icon") || 
+            const icon = (tree.querySelector(".tree-symlink-icon") ||
                 document.createElement("div")) as HTMLDivElement
             icon.classList.add("tree-item-icon", "tree-symlink-icon")
 
-            // to allow correct setting reflection - rewrite with svg query selector all?
+            // to allow correct setting reflection - rewrite with svg query
+            // selector all?
             icon.firstChild?.remove()
 
-            // wheen updating all symlinks, tree is redrawn many times, directories may not exist, final call will be correct render
+            // wheen updating all symlinks, tree is redrawn many times,
+            // directories may not exist, final call will be correct render
             const absolutePath = path.join(this.vaultDirname, dataPath)
             if (!fs.existsSync(absolutePath)) { return }
 
             const isFile = fs.statSync(absolutePath).isFile()
             const isSymlink = fs.lstatSync(absolutePath).isSymbolicLink()
 
-            if (isFile && isSymlink && shouldHighlight) { 
-                setIcon(icon, "file-symlink") 
+            if (isFile && isSymlink && shouldHighlight) {
+                setIcon(icon, "file-symlink")
             }
-            else if (isFile && shouldHighlight && !isSymlinkChild) { 
+            else if (isFile && shouldHighlight && !isSymlinkChild) {
                 setIcon(icon, "alert-circle")
                 icon.style.color = "var(--color-orange)"
             }
@@ -412,10 +414,10 @@ class Symlink extends Plugin {
             else if (isIgnored && shouldHighlight) {
                 setIcon(icon, "alert-circle")
                 icon.style.color = "var(--color-orange)"
-            } 
+            }
             else {
                 if ((this.filteredRepos).includes(dataPath)) {
-                    setIcon(icon, "check-circle-2") 
+                    setIcon(icon, "check-circle-2")
                     icon.style.color = "var(--color-green)"
                 }
                 else if ((this.repos).includes(dataPath)) {
@@ -436,7 +438,8 @@ class Symlink extends Plugin {
 
 // remove util
 // add glob support for ignore files
+// document stylesheet
 
-// @exports
+// @@exports
 export default Symlink
 export type { Symlink }
