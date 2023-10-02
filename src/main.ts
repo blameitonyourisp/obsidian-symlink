@@ -476,92 +476,89 @@ class Symlink extends Plugin {
         // a class property.
         if (!tree) { return }
 
-        //
-        const dataPath = tree.getAttribute("data-path")
-        if (dataPath) {
-            //
-            let shouldHighlight = false
-            let isSymlinkChild = false
-            let isIgnored = false
-            let isLinked = true
-
-            //
-            for (const repo of this.filteredRepos) {
-                if (dataPath.startsWith(repo)) {
-                    shouldHighlight = true
-                    isLinked = this.settings.repositoryDirLink.includes(
-                        path.relative(repo, dataPath)
-                    )
-                    isIgnored = this.settings.repositoryDirIgnore.includes(
-                        path.relative(repo, dataPath)
-                    )
-                    for (const link of this.settings.repositoryDirLink) {
-                        if (dataPath.startsWith(path.join(repo, link))) {
-                            isSymlinkChild = true
-                            break
-                        }
-                    }
-                    break
-                }
-            }
-
-            //
-            const icon = (tree.querySelector(".tree-symlink-icon") ||
-                document.createElement("div")) as HTMLDivElement
-            icon.classList.add("tree-item-icon", "tree-symlink-icon")
-            icon.firstChild?.remove()
-
-            // wheen updating all symlinks, tree is redrawn many times,
-            // directories may not exist, final call will be correct render
-            const absolutePath = path.join(this.vaultDirname, dataPath)
-            if (!fs.existsSync(absolutePath)) { return }
-
-            //
-            const isFile = fs.statSync(absolutePath).isFile()
-            const isSymlink = fs.lstatSync(absolutePath).isSymbolicLink()
-
-            //
-            if (isFile && isSymlink && shouldHighlight) {
-                setIcon(icon, "file-symlink")
-            }
-            else if (isFile && shouldHighlight && !isSymlinkChild) {
-                setIcon(icon, "alert-circle")
-                icon.style.color = "var(--color-orange)"
-            }
-            else if (isSymlink && shouldHighlight) {
-                setIcon(icon, "folder-symlink")
-                if (!isLinked) { icon.style.color = "var(--color-orange)" }
-            }
-            else if (isIgnored && shouldHighlight) {
-                setIcon(icon, "alert-circle")
-                icon.style.color = "var(--color-orange)"
-            }
-            else {
-                if ((this.filteredRepos).includes(dataPath)) {
-                    setIcon(icon, "check-circle-2")
-                    icon.style.color = "var(--color-green)"
-                }
-                else if ((this.repos).includes(dataPath)) {
-                    setIcon(icon, "alert-circle")
-                    icon.style.color = "var(--color-orange)"
-                }
-            }
-
-            // Highlight tree file/directory item with generated icon container.
-            tree.appendChild(icon)
-        }
-
         // Recursively call highlight method on each subtree.
         for (const child of Array.from(tree.children)) {
             this.highlightTree(child as HTMLDivElement)
         }
+
+        //
+        const dataPath = tree.getAttribute("data-path")
+        if (!dataPath) { return }
+
+        // wheen updating all symlinks, tree is redrawn many times,
+        // directories may not exist, final call will be correct render
+        const absolutePath = path.join(this.vaultDirname, dataPath)
+        if (!fs.existsSync(absolutePath)) { return }
+
+        //
+        const isFile = fs.statSync(absolutePath).isFile()
+        const isSymlink = fs.lstatSync(absolutePath).isSymbolicLink()
+
+        //
+        let shouldHighlight = false
+        let isSymlinkChild = false
+        let isIgnored = false
+        let isLinked = true
+
+        //
+        for (const repo of this.filteredRepos) {
+            if (dataPath.startsWith(repo)) {
+                shouldHighlight = true
+                isLinked = this.settings.repositoryDirLink.includes(
+                    path.relative(repo, dataPath)
+                )
+                isIgnored = this.settings.repositoryDirIgnore.includes(
+                    path.relative(repo, dataPath)
+                )
+                for (const link of this.settings.repositoryDirLink) {
+                    if (dataPath.startsWith(path.join(repo, link))) {
+                        isSymlinkChild = true
+                        break
+                    }
+                }
+                break
+            }
+        }
+
+        //
+        const icon = (tree.querySelector(".tree-symlink-icon") ||
+            document.createElement("div")) as HTMLDivElement
+        icon.classList.add("tree-item-icon", "tree-symlink-icon")
+        icon.querySelector("svg")?.remove()
+
+        //
+        if (isFile && isSymlink && shouldHighlight) {
+            setIcon(icon, "file-symlink")
+        }
+        else if (isFile && shouldHighlight && !isSymlinkChild) {
+            setIcon(icon, "alert-circle")
+            icon.style.color = "var(--color-orange)"
+        }
+        else if (isSymlink && shouldHighlight) {
+            setIcon(icon, "folder-symlink")
+            if (!isLinked) { icon.style.color = "var(--color-orange)" }
+        }
+        else if (isIgnored && shouldHighlight) {
+            setIcon(icon, "alert-circle")
+            icon.style.color = "var(--color-orange)"
+        }
+        else {
+            if ((this.filteredRepos).includes(dataPath)) {
+                setIcon(icon, "check-circle-2")
+                icon.style.color = "var(--color-green)"
+            }
+            else if ((this.repos).includes(dataPath)) {
+                setIcon(icon, "alert-circle")
+                icon.style.color = "var(--color-orange)"
+            }
+        }
+
+        // Highlight tree file/directory item with generated icon container.
+        tree.appendChild(icon)
     }
 }
 
 // change includes to use endsWith or eqeqeq etc. search includes, endwith, star
-// rewrite icon replacement with svg query selector?
-// refactor highlightTree to remove if block
-// refactor isSymlink block in highlightTree to top of if block
 
 // @@exports
 export default Symlink
