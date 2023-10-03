@@ -79,7 +79,7 @@ class Symlink extends Plugin {
         // and symlink repos according to plugin settings.
         this.app.workspace.onLayoutReady(() => {
             this.watchTree()
-            // this.symlinkRepos()
+            if (this.settings.shouldSymlinkOnStart) { this.symlinkRepos() }
         })
     }
 
@@ -565,7 +565,7 @@ class Symlink extends Plugin {
 
 // change includes to use endsWith or eqeqeq etc. search includes, endwith, star
 // add symlink on load setting
-// resolve file tree syncing issue
+// resolve file tree syncing issue without using timeout
 
 // @@exports
 export default Symlink

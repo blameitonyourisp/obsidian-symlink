@@ -23,7 +23,8 @@ interface SymlinkSettings {
     repositoryDirLink: string[]
     repositoryIgnore: string[],
     repositoryInclude: string[],
-    isWhitelist: boolean
+    isWhitelist: boolean,
+    shouldSymlinkOnStart: boolean
 }
 
 // @@exports

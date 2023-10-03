@@ -44,7 +44,8 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
             container: HTMLElement,
             plugin: Symlink,
             input: { name: string, description: string }
-            setting: keyof Pick<SymlinkSettings, "isWhitelist">
+            setting: keyof
+                Pick<SymlinkSettings, "isWhitelist" | "shouldSymlinkOnStart">
         }
     ) {
         super({ title, description, container, plugin })

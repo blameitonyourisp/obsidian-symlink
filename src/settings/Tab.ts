@@ -128,6 +128,19 @@ class SymlinkSettingsTab extends PluginSettingTab {
             },
             setting: "isWhitelist"
         }).mount()
+
+        new SymlinkSettingToggleController({
+            title: "",
+            description: "",
+            container: containerEl,
+            plugin: this.plugin,
+            input: {
+                name: "Symlink on start",
+                description: "Should repository symlinks be reloaded when \
+                starting obsidian, and or when reloading the window?",
+            },
+            setting: "shouldSymlinkOnStart"
+        }).mount()
     }
 }
 

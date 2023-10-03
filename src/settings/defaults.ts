@@ -24,7 +24,8 @@ const DEFAULT_SETTINGS: SymlinkSettings = {
     repositoryDirLink: ["docs"],
     repositoryIgnore: [],
     repositoryInclude: [],
-    isWhitelist: true
+    isWhitelist: true,
+    shouldSymlinkOnStart: true
 }
 
 // @@exports
