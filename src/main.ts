@@ -75,8 +75,12 @@ class Symlink extends Plugin {
         })
 
         // When the workspace has been rendered (and thus when the file tree
-        // elements can be mounted), begin watching the file tree for changes.
-        this.app.workspace.onLayoutReady(() => this.watchTree())
+        // elements can be mounted), begin watching the file tree for changes,
+        // and symlink repos according to plugin settings.
+        this.app.workspace.onLayoutReady(() => {
+            this.watchTree()
+            // this.symlinkRepos()
+        })
     }
 
     /**
@@ -234,6 +238,7 @@ class Symlink extends Plugin {
      * symlinked vault repos which should be kept will be updated.
      */
     symlinkRepos(): void {
+        // Ensure class repo and filtered repo properties are up to date.
         this.updateRepos()
 
         // For each repo indexed after update, either symlink the repo to the
@@ -253,7 +258,7 @@ class Symlink extends Plugin {
                     const event = this.app.vault.on("delete", file => {
                         if (file.path === repo) {
                             this.app.vault.offref(event) // Clean up listeners.
-                            this.symlinkRepo(repo)
+                            setTimeout(() => this.symlinkRepo(repo), 100)
                         }
                     })
                     this.removeVaultRepo(repo)
@@ -559,6 +564,8 @@ class Symlink extends Plugin {
 }
 
 // change includes to use endsWith or eqeqeq etc. search includes, endwith, star
+// add symlink on load setting
+// resolve file tree syncing issue
 
 // @@exports
 export default Symlink
