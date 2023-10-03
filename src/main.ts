@@ -182,29 +182,33 @@ class Symlink extends Plugin {
      *      of this vault.
      * @param searchVault - Should files be indexed from actual repository, or
      *      from the existing symlinked version contained in the vault.
-     * @param dir - Current child directory of repository being recursed.
+     * @param relativeDirname - Child directory of repository being recursed.
      * @returns Array of markdown file paths relative to root of repository.
      */
-    getRepoFiles(repo: string, searchVault = false, dir = ""): string[] {
-        // Calculate dirname of child directory of repository.
-        const dirname = path.join(
+    getRepoFiles(
+        repo: string,
+        searchVault = false,
+        relativeDirname = ""
+    ): string[] {
+        // Calculate absolute dirname of child directory of repository.
+        const absoluteDirname = path.join(
             searchVault ? this.vaultDirname : this.localDirname,
             repo,
-            dir
+            relativeDirname
         )
 
         const files: string[] = []
 
         // Return if nested directory no longer exists; prevents errors when
         // source directory is deleted, but still exists in obsidian.
-        if (!fs.existsSync(dirname)) { return files }
+        if (!fs.existsSync(absoluteDirname)) { return files }
 
         // Loop over child paths, adding to output array if a markdown file is
         // found, ignoring directories included in user settings ignore list,
         // and recursing over any other child directories.
-        for (const pathname of fs.readdirSync(dirname)) {
-            const absolutePath = path.join(dirname, pathname)
-            const relativePath = path.join(dir, pathname)
+        for (const pathname of fs.readdirSync(absoluteDirname)) {
+            const absolutePath = path.join(absoluteDirname, pathname)
+            const relativePath = path.join(relativeDirname, pathname)
             if (fs.statSync(absolutePath).isFile()) {
                 if (path.extname(absolutePath) === ".md") {
                     files.push(relativePath)
@@ -217,7 +221,6 @@ class Symlink extends Plugin {
             let shouldIgnore = false
             for (const pathname of this.settings.repositoryDirIgnore) {
                 if (relativePath.includes(pathname)) {
-                    // replace with ends with
                     shouldIgnore = true
                     break
                 }
@@ -393,7 +396,6 @@ class Symlink extends Plugin {
         let shouldIgnore = false
         for (const pathname of this.settings.repositoryDirLink) {
             if (file.includes(pathname)) {
-                // replace with starts with
                 shouldIgnore = true
                 break
             }
@@ -548,11 +550,11 @@ class Symlink extends Plugin {
             icon.style.color = "var(--color-orange)"
         }
         else {
-            if ((this.filteredRepos).includes(dataPath)) {
+            if (this.filteredRepos.includes(dataPath)) {
                 setIcon(icon, "check-circle-2")
                 icon.style.color = "var(--color-green)"
             }
-            else if ((this.repos).includes(dataPath)) {
+            else if (this.repos.includes(dataPath)) {
                 setIcon(icon, "alert-circle")
                 icon.style.color = "var(--color-orange)"
             }
@@ -563,8 +565,7 @@ class Symlink extends Plugin {
     }
 }
 
-// change includes to use endsWith or eqeqeq etc. search includes, endwith, star
-// add symlink on load setting
+// complete highlightTree documentation and controllers documentation
 // resolve file tree syncing issue without using timeout
 
 // @@exports
