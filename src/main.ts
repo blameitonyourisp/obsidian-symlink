@@ -24,6 +24,7 @@ import { Plugin, setIcon } from "obsidian"
 
 // @@imports-package
 import { DEFAULT_SETTINGS, SymlinkSettingsTab } from "#settings"
+import { setLinearBackoff } from "#utils"
 
 // @@imports-types
 import type { SymlinkSettings } from "#types"
@@ -244,31 +245,49 @@ class Symlink extends Plugin {
         // Ensure class repo and filtered repo properties are up to date.
         this.updateRepos()
 
-        // For each repo indexed after update, either symlink the repo to the
-        // vault if included in the filtered repos array, or remove the vault
-        // repo symlink if not included in filtered repos array.
+        //
+        const tracer = {
+            deletedPaths: new Set() as Set<string>,
+            cacheDeletedPaths: new Set() as Set<string>,
+            isComplete: false,
+            get isEqual(): boolean {
+                return (
+                    this.deletedPaths.size === this.cacheDeletedPaths.size &&
+                    [...this.deletedPaths].every(directory => {
+                        return this.cacheDeletedPaths.has(directory)
+                    })
+                )
+            }
+        }
+
+        //
+        const event = this.app.vault.on("delete", file => {
+            tracer.cacheDeletedPaths.add(file.path)
+            if (tracer.isComplete && tracer.isEqual) {
+                this.app.vault.offref(event) // Clean up listeners.
+            }
+        })
+
+        //
         for (const repo of this.repos) {
-            if (this.filteredRepos.includes(repo)) {
-                // If repo not yet symlinked in vault, symlink repo directly.
-                if (!fs.existsSync(path.join(this.vaultDirname, repo))) {
+            for (const directory of this.removeVaultRepo(repo)) {
+                tracer.deletedPaths.add(directory)
+            }
+        }
+
+        //
+        tracer.isComplete = true
+
+        //
+        setLinearBackoff(
+            () => {
+                for (const repo of this.filteredRepos) {
                     this.symlinkRepo(repo)
                 }
-
-                // Otherwise add event listener for deletion of repo from vault
-                // and vault cache, delete existing vault repo symlink, then
-                // remake the symlink when event callback fired.
-                else {
-                    const event = this.app.vault.on("delete", file => {
-                        if (file.path === repo) {
-                            this.app.vault.offref(event) // Clean up listeners.
-                            setTimeout(() => this.symlinkRepo(repo), 100)
-                        }
-                    })
-                    this.removeVaultRepo(repo)
-                }
-            }
-            else { this.removeVaultRepo(repo) }
-        }
+            },
+            () => tracer.isComplete && tracer.isEqual,
+            { maxMs: 10 * 1000 }
+        )
     }
 
     /**
@@ -301,12 +320,31 @@ class Symlink extends Plugin {
      * @param repo - Relative path to requested repo from the parent directory
      *      of the vault.
      */
-    removeVaultRepo(repo: string): void {
+    removeVaultRepo(repo: string): string[] {
         // Calculate absolute path of symlinked repo within the vault.
         let vaultPath = path.join(this.vaultDirname, repo)
 
+        //
+        const deletedPaths = []
+
+        //
+        const walkRepo = (relativePath: string): string[] => {
+            const absolutePath = path.join(this.vaultDirname, relativePath)
+
+            const paths = [relativePath]
+            if (fs.statSync(absolutePath).isFile()) { return paths }
+
+            const subPathnames = fs.readdirSync(absolutePath)
+            for (const pathname of subPathnames) {
+                paths.push(...walkRepo(path.join(relativePath, pathname)))
+            }
+
+            return paths
+        }
+
         // Recursively remove directory of symlinked repo in the vault.
         if (fs.existsSync(vaultPath)) {
+            deletedPaths.push(...walkRepo(repo))
             fs.rmSync(vaultPath, { recursive: true, force: true })
         }
 
@@ -330,8 +368,13 @@ class Symlink extends Plugin {
             // is used specifically since it will throw an error if directory is
             // not empty.
             if (!fs.existsSync(vaultPath)) { continue }
-            if (!fs.readdirSync(vaultPath).length) { fs.rmdirSync(vaultPath) }
+            if (!fs.readdirSync(vaultPath).length) {
+                deletedPaths.push(repo) // Walk not required, since dir empty.
+                fs.rmdirSync(vaultPath)
+            }
         }
+
+        return deletedPaths
     }
 
     /**
@@ -566,7 +609,7 @@ class Symlink extends Plugin {
 }
 
 // complete highlightTree documentation and controllers documentation
-// resolve file tree syncing issue without using timeout
+// change remove to delete
 
 // @@exports
 export default Symlink
