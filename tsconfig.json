@@ -21,7 +21,8 @@
         "paths": {
             "#settings": [ "./src/settings/index.ts", "./src/settings/*.ts" ],
             "#settings/controllers": [ "./src/settings/controllers/index.ts", "./src/settings/controllers/*.ts" ],
-            "#types": [ "./src/types/index.ts", "./src/types/*.ts" ]
+            "#types": [ "./src/types/index.ts", "./src/types/*.ts" ],
+            "#utils": [ "./src/utils/index.ts", "./src/utils/*.ts" ]
         }
     },
     "include": [
