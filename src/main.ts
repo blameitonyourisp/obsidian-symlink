@@ -270,7 +270,7 @@ class Symlink extends Plugin {
 
         //
         for (const repo of this.repos) {
-            for (const directory of this.removeVaultRepo(repo)) {
+            for (const directory of this.deleteVaultRepo(repo)) {
                 tracer.deletedPaths.add(directory)
             }
         }
@@ -320,7 +320,7 @@ class Symlink extends Plugin {
      * @param repo - Relative path to requested repo from the parent directory
      *      of the vault.
      */
-    removeVaultRepo(repo: string): string[] {
+    deleteVaultRepo(repo: string): string[] {
         // Calculate absolute path of symlinked repo within the vault.
         let vaultPath = path.join(this.vaultDirname, repo)
 
@@ -609,7 +609,6 @@ class Symlink extends Plugin {
 }
 
 // complete highlightTree documentation and controllers documentation
-// change remove to delete
 
 // @@exports
 export default Symlink
