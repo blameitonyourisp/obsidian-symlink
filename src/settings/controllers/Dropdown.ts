@@ -22,7 +22,7 @@ import { Setting } from "obsidian"
 import { SymlinkSettingListController } from "./List.ts"
 
 // @@imports-types
-import type { SymlinkSettings } from "#types"
+import type { SymlinkSettings, SymlinkToggleKeys } from "#types"
 import type { Symlink } from "../../main.ts"
 
 // @@body
@@ -43,7 +43,7 @@ class SymlinkSettingDropdownController extends SymlinkSettingListController {
             container: HTMLElement,
             plugin: Symlink,
             input: { name: string, description: string }
-            setting: keyof Omit<SymlinkSettings, "isWhitelist">,
+            setting: keyof Omit<SymlinkSettings, SymlinkToggleKeys>,
             options: { value: string, display: string }[]
         }
     ) {

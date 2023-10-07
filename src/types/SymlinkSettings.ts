@@ -18,6 +18,7 @@
 // @@no-imports
 
 // @@body
+// Symlink plugin settings object type.
 interface SymlinkSettings {
     repositoryDirIgnore: string[]
     repositoryDirLink: string[]
@@ -27,5 +28,11 @@ interface SymlinkSettings {
     shouldSymlinkOnStart: boolean
 }
 
+// Isolate boolean (toggle) keys in symlink settings using generic.
+type BooleanKeys<T> = {
+    [key in keyof T]: T[key] extends boolean ? key : never
+}[keyof T]
+type SymlinkToggleKeys = BooleanKeys<SymlinkSettings>
+
 // @@exports
-export type { SymlinkSettings }
+export type { SymlinkSettings, SymlinkToggleKeys }

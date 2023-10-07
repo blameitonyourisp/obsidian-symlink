@@ -22,7 +22,7 @@ import { Setting } from "obsidian"
 import { SymlinkSettingController } from "./Base.ts"
 
 // @@imports-types
-import type { SymlinkSettings } from "#types"
+import type { SymlinkSettings, SymlinkToggleKeys } from "#types"
 import type { Symlink } from "../../main.ts"
 
 // @@body
@@ -31,7 +31,7 @@ import type { Symlink } from "../../main.ts"
  */
 class SymlinkSettingToggleController extends SymlinkSettingController {
     input!: { name: string, description: string }
-    setting!: keyof Pick<SymlinkSettings, "isWhitelist">
+    setting!: keyof Pick<SymlinkSettings, SymlinkToggleKeys>
 
     /**
      *
@@ -44,8 +44,7 @@ class SymlinkSettingToggleController extends SymlinkSettingController {
             container: HTMLElement,
             plugin: Symlink,
             input: { name: string, description: string }
-            setting: keyof
-                Pick<SymlinkSettings, "isWhitelist" | "shouldSymlinkOnStart">
+            setting: keyof Pick<SymlinkSettings, SymlinkToggleKeys>
         }
     ) {
         super({ title, description, container, plugin })

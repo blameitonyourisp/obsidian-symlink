@@ -25,7 +25,7 @@ import { Setting, setIcon, normalizePath, ButtonComponent } from "obsidian"
 import { SymlinkSettingController } from "./Base.ts"
 
 // @@imports-types
-import type { SymlinkSettings } from "#types"
+import type { SymlinkSettings, SymlinkToggleKeys } from "#types"
 import type { Symlink } from "../../main.ts"
 
 // @@body
@@ -34,7 +34,7 @@ import type { Symlink } from "../../main.ts"
  */
 class SymlinkSettingListController extends SymlinkSettingController {
     input!: { name: string, description: string }
-    setting!: keyof Omit<SymlinkSettings, "isWhitelist">
+    setting!: keyof Omit<SymlinkSettings, SymlinkToggleKeys>
     settingSet: Set<string>
     //
     list?: HTMLDivElement
@@ -52,7 +52,7 @@ class SymlinkSettingListController extends SymlinkSettingController {
             container: HTMLElement,
             plugin: Symlink,
             input: { name: string, description: string }
-            setting: keyof Omit<SymlinkSettings, "isWhitelist">
+            setting: keyof Omit<SymlinkSettings, SymlinkToggleKeys>
         }
     ) {
         super({ title, description, container, plugin })

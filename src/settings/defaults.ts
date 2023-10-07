@@ -19,6 +19,7 @@
 import type { SymlinkSettings } from "#types"
 
 // @@body
+// Default settings for symlink plugin.
 const DEFAULT_SETTINGS: SymlinkSettings = {
     repositoryDirIgnore: ["node_modules", ".git"],
     repositoryDirLink: ["docs"],
