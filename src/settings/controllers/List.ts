@@ -174,13 +174,20 @@ class SymlinkSettingListController extends SymlinkSettingController {
      */
     async mountListItem(): Promise<void> {
         const shouldMount = this.shouldMount()
-        if (shouldMount) { this.settingSet.add(this.pathname as string) }
+        if (!shouldMount) { return }
+
+        // Update toggle value locally and in plugin settings.
+        this.settingSet.add(this.pathname as string)
         this.plugin.settings[this.setting] = Array.from(this.settingSet)
+
+        // Save plugin settings with updated values, add list item, and refresh
+        // plugin repo and file tree state as required.
         await this.plugin.saveSettings().then(() => {
-            if (shouldMount) {
-                const item = this.createListItem();
-                (this.list as HTMLDivElement).appendChild(item)
-            }
+            //
+            const item = this.createListItem()
+            this.list.appendChild(item)
+
+            //
             this.updateButton()
             this.plugin.updateRepos()
             this.plugin.highlightTree()
