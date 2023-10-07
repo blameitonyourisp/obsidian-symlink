@@ -21,4 +21,5 @@
 // @@no-body
 
 // @@exports
+export type { Symlink } from "../main.ts" // Export type of plugin class.
 export * from "./SymlinkSettings.ts"
