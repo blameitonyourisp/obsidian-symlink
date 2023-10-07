@@ -145,7 +145,7 @@ const setExponentialBackoff = (
     { startMs = 10, maxRetries = Infinity, maxMs = Infinity } = {}
 ): void => {
     // Declare backoff callback function, and call setBackoff with given args.
-    const backoffMs = (retries: number) => startMs + startMs ** retries
+    const backoffMs = (retries: number) => startMs * 2 ** retries
     return setBackoff(callback, condition, backoffMs, { maxRetries, maxMs })
 }
 
