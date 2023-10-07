@@ -100,7 +100,7 @@
             // blocks).
             {
                 "id": "noInvalidBlockTags",
-                "regex": "(?<=\/\/ )@@(?!(no-)?(body|exports)|no-imports|imports(-(node|dependencies|utils|package|module|submodule|types))?)",
+                "regex": "(?<=\/\/ )@@(?!((no-)?(body|exports|imports)|imports(-(node|dependencies|utils|package|module|submodule|types)))\\s)",
                 "message": "Invalid @@<block> block tags not permitted. Remove block tag, or use a valid tag.",
                 "replacement": {
                     // Remove @@ in front of matched invalid tag.
@@ -174,8 +174,8 @@
             // these blocks appear in the correct order.
             {
                 "id": "noMissingBlocks",
-                "regex": "(?<!.|\n)(?!(.*\n)*\/\/ @@(no-)?imports(.*\n)*\/\/ @@(no-)?body(.*\n)*\/\/ @@(no-)?exports)",
-                "message": "One or mor @@<block> tags missing, or blocks are in incorrect order."
+                "regex": "(?<!.|\n)(?!(.*\n)*\/\/ @@((no-)?imports|imports-[a-z]*)\\s(.*\n)*\/\/ @@(no-)?body\\s(.*\n)*\/\/ @@(no-)?exports\\s)",
+                "message": "One or more @@<block> tags missing, or blocks are in incorrect order."
             }
         ]],
 
