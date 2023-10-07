@@ -26,7 +26,7 @@
  * or exponential backoff time) must be provided. Backoff will give up if max
  * number of retries and/a time elapsed are exceeded.
  *
- * @summary Bakcoff wrapper around setTimeout which executes callback only when
+ * @summary Backoff wrapper around setTimeout which executes callback only when
  *      a certain condition is met.
  * @param callback - Arity 0, void return callback function to be executed when
  *      backoff condition is met.
