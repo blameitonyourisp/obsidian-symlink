@@ -51,20 +51,16 @@ class SymlinkSettingDropdownController extends SymlinkSettingListController {
     }
 
     /**
+     * Create dropdown setting controller rendering name and description of
+     * setting, rendering a dropdown with available settings, and rendering list
+     * of existing settings above the dropdown.
      *
-     * @returns
+     * @returns Div with elements for viewing and updating plugin settings.
      */
     createController(): HTMLDivElement {
-        //
+        // Initialise returned wrapper with outer title and description values,
+        // and a list of existing settings.
         const wrapper = this.createWrapper()
-        this.list = this.createList()
-        wrapper.appendChild(this.list)
-
-        //
-        for (const pathname of this.plugin.settings[this.setting]) {
-            const item = this.createListItem(pathname)
-            this.list.appendChild(item)
-        }
 
         //
         this.pathname = this.options[0]?.value

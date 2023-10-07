@@ -63,9 +63,12 @@ class SymlinkSettingListController extends SymlinkSettingController {
      *
      * @returns
      */
-    createController(): HTMLDivElement {
-        //
-        const wrapper = this.createWrapper()
+    createWrapper(): HTMLDivElement {
+        // Initialise returned wrapper with outer title and description values.
+        const wrapper = super.createWrapper()
+
+        // Create list for existing settings. set list to class property, and
+        // append to wrapper.
         this.list = this.createList()
         wrapper.appendChild(this.list)
 
@@ -74,6 +77,18 @@ class SymlinkSettingListController extends SymlinkSettingController {
             const item = this.createListItem(pathname)
             this.list.appendChild(item)
         }
+
+        return wrapper
+    }
+
+    /**
+     *
+     * @returns Div with elements for viewing and updating plugin settings.
+     */
+    createController(): HTMLDivElement {
+        // Initialise returned wrapper with outer title and description values,
+        // and a list of existing settings.
+        const wrapper = this.createWrapper()
 
         //
         new Setting(wrapper)
