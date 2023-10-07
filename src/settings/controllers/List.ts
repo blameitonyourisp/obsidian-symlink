@@ -15,7 +15,7 @@
 
 // @ts-check
 
-// @imports-node
+// @@imports-node
 import * as path from "path"
 
 // @@imports-dependencies
@@ -25,8 +25,7 @@ import { Setting, setIcon, normalizePath, ButtonComponent } from "obsidian"
 import { SymlinkSettingController } from "./Base.ts"
 
 // @@imports-types
-import type { SymlinkSettings, SymlinkToggleKeys } from "#types"
-import type { Symlink } from "../../main.ts"
+import type { Symlink, SymlinkSettings, SymlinkToggleKeys } from "#types"
 
 // @@body
 /**

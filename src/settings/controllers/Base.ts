@@ -15,8 +15,8 @@
 
 // @ts-check
 
-// @@imports-package
-import type { Symlink } from "../../main.ts"
+// @@imports-types
+import type { Symlink } from "#types"
 
 // @@body
 /**

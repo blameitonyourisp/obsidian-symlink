@@ -22,8 +22,7 @@ import { Setting } from "obsidian"
 import { SymlinkSettingController } from "./Base.ts"
 
 // @@imports-types
-import type { SymlinkSettings, SymlinkToggleKeys } from "#types"
-import type { Symlink } from "../../main.ts"
+import type { Symlink, SymlinkSettings, SymlinkToggleKeys } from "#types"
 
 // @@body
 /**

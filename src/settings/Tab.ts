@@ -26,7 +26,7 @@ import {
 } from "#settings/controllers"
 
 // @@imports-types
-import type { Symlink } from "../main.ts"
+import type { Symlink } from "#types"
 
 // @@body
 /**
