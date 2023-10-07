@@ -35,8 +35,8 @@ class SymlinkSettingListController extends SymlinkSettingController {
     input!: { name: string, description: string }
     setting!: keyof Omit<SymlinkSettings, SymlinkToggleKeys>
     settingSet: Set<string>
-    //
-    list?: HTMLDivElement
+    list: HTMLDivElement
+    // Class properties *not* set in constructor.
     pathname?: string
     button?: ButtonComponent
 
@@ -56,27 +56,31 @@ class SymlinkSettingListController extends SymlinkSettingController {
     ) {
         super({ title, description, container, plugin })
         Object.assign(this, { input, setting })
+
+        // Create set from from existing specified user setting array, such that
+        // it is easy to check for uniqueness when adding to the array.
         this.settingSet = new Set(this.plugin.settings[this.setting])
+
+        // Create list element for existing added settings, and populate it with
+        // generated list item elements from the loaded user settings.
+        this.list = this.createList()
+        for (const pathname of this.plugin.settings[this.setting]) {
+            const item = this.createListItem(pathname)
+            this.list.appendChild(item)
+        }
     }
 
     /**
+     * Test
      *
-     * @returns
+     * @returns test
      */
     createWrapper(): HTMLDivElement {
         // Initialise returned wrapper with outer title and description values.
         const wrapper = super.createWrapper()
 
-        // Create list for existing settings. set list to class property, and
-        // append to wrapper.
-        this.list = this.createList()
+        // Append list of existing added settings to wrapper.
         wrapper.appendChild(this.list)
-
-        //
-        for (const pathname of this.plugin.settings[this.setting]) {
-            const item = this.createListItem(pathname)
-            this.list.appendChild(item)
-        }
 
         return wrapper
     }
