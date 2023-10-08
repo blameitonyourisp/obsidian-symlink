@@ -15,8 +15,8 @@
         "lint:fix": "eslint ./src ./admin --cache --cache-location ./.cache/eslint.json --fix",
         "lint:fix-dry": "eslint ./src ./admin --cache --cache-location ./.cache/eslint.json --fix-dry",
 		"postversion": "git push --follow-tags",
-		"preversion": "npm run build:prod",
-		"version": "node admin/scripts/version.js && git add manifest.json versions.json",
+		"preversion": "npm run build:prod && npm run admin:tokei",
+		"version": "node admin/scripts/version.js && git add manifest.json versions.json dist",
 		"types": "tsc"
 	},
 	"keywords": [
