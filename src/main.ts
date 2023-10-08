@@ -644,8 +644,6 @@ class Symlink extends Plugin {
     }
 }
 
-// complete highlightTree documentation
-
 // @@exports
 export default Symlink
 export type { Symlink }
