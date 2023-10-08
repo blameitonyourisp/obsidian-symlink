@@ -245,40 +245,58 @@ class Symlink extends Plugin {
         // Ensure class repo and filtered repo properties are up to date.
         this.updateRepos()
 
-        //
+        // Tracer object containing string set of paths (directories and files)
+        // removed from the file system by `deleteVaultRepo` method, and a
+        // string set of paths deleted from the vault cache.
         const tracer = {
             deletedPaths: new Set() as Set<string>,
             cacheDeletedPaths: new Set() as Set<string>,
             isComplete: false,
             get isEqual(): boolean {
+                // Compare path string sets and return true if they are equal.
                 return (
                     this.deletedPaths.size === this.cacheDeletedPaths.size &&
-                    [...this.deletedPaths].every(directory => {
-                        return this.cacheDeletedPaths.has(directory)
+                    [...this.deletedPaths].every(pathname => {
+                        return this.cacheDeletedPaths.has(pathname)
                     })
                 )
             }
         }
 
-        //
+        // Add event listener for deletion of repo directories/files from vault
+        // and vault cache.
         const event = this.app.vault.on("delete", file => {
+            // Add file path (may be file or directory) to set of paths deleted
+            // from cache.
             tracer.cacheDeletedPaths.add(file.path)
+
+            // Clean up listeners when tracer status is complete, and when all
+            // deleted resource paths have also been deleted from vault cache.
             if (tracer.isComplete && tracer.isEqual) {
-                this.app.vault.offref(event) // Clean up listeners.
+                this.app.vault.offref(event)
             }
         })
 
-        //
+        // Delete every repo from vault (does nothing if repo is unlinked), and
+        // add all deleted paths to the tracer object.
         for (const repo of this.repos) {
-            for (const directory of this.deleteVaultRepo(repo)) {
-                tracer.deletedPaths.add(directory)
+            for (const pathname of this.deleteVaultRepo(repo)) {
+                tracer.deletedPaths.add(pathname)
             }
         }
 
-        //
+        // Update tracer status.
         tracer.isComplete = true
 
-        //
+        // Symlink all repositories in the `filteredRepos` setting array using a
+        // linear backoff. Callback executed only when the tracer status is
+        // complete (i.e. no more vault resources will be deleted), and when the
+        // resources removed from the file system by `deleteVaultRepo` method
+        // have also triggered the vault `delete` event (i.e. they have been
+        // remove from the vault cache). This ensures that the obsidian file
+        // tree will not fall out of sync with the file system due to cache
+        // timings (e.g. a repo being re-symlinked before the `delete` event
+        // on that repo had been propagated).
         setLinearBackoff(
             () => {
                 for (const repo of this.filteredRepos) {
@@ -324,16 +342,20 @@ class Symlink extends Plugin {
         // Calculate absolute path of symlinked repo within the vault.
         let vaultPath = path.join(this.vaultDirname, repo)
 
-        //
-        const deletedPaths = []
+        // Array of paths of files and directories deleted by this method.
+        const deletedPaths: string[] = []
 
-        //
+        // Inline function to recursively walk deleted repo to get paths of all
+        // deleted files and directories.
         const walkRepo = (relativePath: string): string[] => {
+            // Absolute path of file or directory being deleted.
             const absolutePath = path.join(this.vaultDirname, relativePath)
 
+            // Initialise result, and return immediately if resource is file.
             const paths = [relativePath]
             if (fs.statSync(absolutePath).isFile()) { return paths }
 
+            // Recurse over sub paths (files and directories).
             const subPathnames = fs.readdirSync(absolutePath)
             for (const pathname of subPathnames) {
                 paths.push(...walkRepo(path.join(relativePath, pathname)))
@@ -531,56 +553,70 @@ class Symlink extends Plugin {
             this.highlightTree(child as HTMLDivElement)
         }
 
-        //
+        // Ignore tree element if there is no `data-path` attribute since all
+        // files and directories have this attribute.
         const dataPath = tree.getAttribute("data-path")
         if (!dataPath) { return }
 
-        // wheen updating all symlinks, tree is redrawn many times,
-        // directories may not exist, final call will be correct render
+        // Ignore if the absolutePath does not exist (when updating all vault
+        // symlinks, tree may be redrawn many times, and so the `highlightTree`
+        // method may be called as directories are being deleted; after all
+        // required repos have been re-symlinked, the final call to the
+        // `highlightTree` method will produce the correct icon highlights).
         const absolutePath = path.join(this.vaultDirname, dataPath)
         if (!fs.existsSync(absolutePath)) { return }
 
-        //
+        // Initialise rendering flags.
         const isFile = fs.statSync(absolutePath).isFile()
         const isSymlink = fs.lstatSync(absolutePath).isSymbolicLink()
-
-        //
         let shouldHighlight = false
         let isSymlinkChild = false
         let isIgnored = false
         let isLinked = true
 
-        //
+        // Update rendering flags.
         for (const repo of this.filteredRepos) {
             if (dataPath.startsWith(repo)) {
+                // If `data-path` is a child of a filtered repo, it should be
+                // highlighted.
                 shouldHighlight = true
+
+                // Is repo directory directly symlinked in plugin settings.
                 isLinked = this.settings.repositoryDirLink.includes(
                     path.relative(repo, dataPath)
                 )
+
+                // Is repo directory ignored in plugin settings.
                 isIgnored = this.settings.repositoryDirIgnore.includes(
                     path.relative(repo, dataPath)
                 )
+
+                // Is file/path a child of a symlinked repo directory.
                 for (const link of this.settings.repositoryDirLink) {
                     if (dataPath.startsWith(path.join(repo, link))) {
                         isSymlinkChild = true
                         break
                     }
                 }
+
                 break
             }
         }
 
-        //
+        // Create icon element with, or fetch existing tree icon, and remove the
+        // child svg element if present. Add required symlink-specific and
+        // existing obsidian class names for styling of icon.
         const icon = (tree.querySelector(".tree-symlink-icon") ||
             document.createElement("div")) as HTMLDivElement
         icon.classList.add("tree-item-icon", "tree-symlink-icon")
         icon.querySelector("svg")?.remove()
 
-        //
+        // Set icon and icon colour (where required) depending on the rendering
+        // flags set above.
         if (isFile && isSymlink && shouldHighlight) {
             setIcon(icon, "file-symlink")
         }
-        else if (isFile && shouldHighlight && !isSymlinkChild) {
+        else if (isFile && !isSymlinkChild && shouldHighlight) {
             setIcon(icon, "alert-circle")
             icon.style.color = "var(--color-orange)"
         }
@@ -608,7 +644,7 @@ class Symlink extends Plugin {
     }
 }
 
-// complete highlightTree documentation and controllers documentation
+// complete highlightTree documentation
 
 // @@exports
 export default Symlink
