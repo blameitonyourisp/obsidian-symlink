@@ -1,14 +1,17 @@
+/* Add rules for optional titles for setting sections. */
 .symlink-setting-title {
     font-size: var(--font-ui-large);
     margin-bottom: 0.75em;
 }
 
+/* Override position for tree icons to position symlink icons to the right. */
 .tree-symlink-icon {
     position: relative !important;
     margin-left: auto !important;
     margin-right: 0;
 }
 
+/* Add rules for disabled setting button state. */
 .symlink-disabled-button {
     background-color: var(--color-base-30) !important;
     box-shadow: none !important;

@@ -58,7 +58,8 @@ var DEFAULT_SETTINGS = {
   repositoryDirLink: ["docs"],
   repositoryIgnore: [],
   repositoryInclude: [],
-  isWhitelist: true
+  isWhitelist: true,
+  shouldSymlinkOnStart: true
 };
 
 // src/settings/Tab.ts
@@ -67,10 +68,16 @@ var import_obsidian4 = require("obsidian");
 // src/settings/controllers/Base.ts
 var SymlinkSettingController = class {
   /**
+   * Assign class properties from provided arguments.
    *
-   * @param param0
+   * @param obj - Class properties required for controller.
+   * @param obj.title - Title string for rendering controller.
+   * @param obj.description - Description string for rendering controller.
+   * @param obj.container - Container to append controller to when mounting.
+   * @param obj.plugin - Current instance of symlink obsidian plugin.
    */
   constructor({ title, description, container, plugin }) {
+    // Class properties set in constructor using object assign.
     __publicField(this, "title");
     __publicField(this, "description");
     __publicField(this, "container");
@@ -78,8 +85,11 @@ var SymlinkSettingController = class {
     Object.assign(this, { title, description, container, plugin });
   }
   /**
+   * Create default controller wrapper with title and description elements
+   * which may be added to by the `createController` method of extended
+   * classes.
    *
-   * @returns
+   * @returns Wrapper containing title and description elements of controller.
    */
   createWrapper() {
     const title = document.createElement("div");
@@ -93,14 +103,19 @@ var SymlinkSettingController = class {
     return wrapper;
   }
   /**
+   * Create controller element required for viewing and updating a given
+   * plugin setting in the settings tab. For each type of setting controller
+   * implemented by extended classes (dropdowns, toggles etc.), the extended
+   * class must implement this template method.
    *
-   * @returns
+   * @returns Div with elements for viewing and updating plugin settings.
    */
   createController() {
     return this.createWrapper();
   }
   /**
-   *
+   * Call `createController` method (implemented by each extended class), and
+   * mount returned element to parent settings tab container.
    */
   mount() {
     this.container.appendChild(this.createController());
@@ -115,33 +130,54 @@ var path = __toESM(require("path"), 1);
 var import_obsidian = require("obsidian");
 var SymlinkSettingListController = class extends SymlinkSettingController {
   /**
+   * Call super, and assign class properties from provided arguments.
    *
-   * @param param0
+   * @param obj - Class properties required for controller and super.
+   * @param obj.title - Title string for rendering controller.
+   * @param obj.description - Description string for rendering controller.
+   * @param obj.container - Container to append controller to when mounting.
+   * @param obj.plugin - Current instance of symlink obsidian plugin.
+   * @param obj.input - Name and description shown next to input field.
+   * @param obj.setting - Symlink setting key which class instance controls.
    */
   constructor({ title, description, container, plugin, input, setting }) {
     super({ title, description, container, plugin });
+    // Class properties set in constructor using object assign.
     __publicField(this, "input");
     __publicField(this, "setting");
     __publicField(this, "settingSet");
-    //
     __publicField(this, "list");
+    // Class properties *not* set in constructor.
     __publicField(this, "pathname");
     __publicField(this, "button");
     Object.assign(this, { input, setting });
     this.settingSet = new Set(this.plugin.settings[this.setting]);
-  }
-  /**
-   *
-   * @returns
-   */
-  createController() {
-    const wrapper = this.createWrapper();
     this.list = this.createList();
-    wrapper.appendChild(this.list);
     for (const pathname of this.plugin.settings[this.setting]) {
       const item = this.createListItem(pathname);
       this.list.appendChild(item);
     }
+  }
+  /**
+   * Create controller wrapper element with title and description elements,
+   * and a list of existing settings.
+   *
+   * @returns Controller wrapper element.
+   */
+  createWrapper() {
+    const wrapper = super.createWrapper();
+    wrapper.appendChild(this.list);
+    return wrapper;
+  }
+  /**
+   * Create list setting controller rendering name and description of setting,
+   * an input field for new settings, and a list of existing settings above
+   * the dropdown.
+   *
+   * @returns Div with elements for viewing and updating plugin settings.
+   */
+  createController() {
+    const wrapper = this.createWrapper();
     new import_obsidian.Setting(wrapper).setName(this.input.name).setDesc(this.input.
     description).addText((textComponent) => {
       textComponent.setPlaceholder("Enter directory name...").onChange((textValue) => {
@@ -159,8 +195,9 @@ var SymlinkSettingListController = class extends SymlinkSettingController {
     return wrapper;
   }
   /**
+   * Create wrapper element for list of existing settings.
    *
-   * @returns
+   * @returns Wrapper element for list of existing settings.
    */
   createList() {
     const wrapper = document.createElement("div");
@@ -168,9 +205,12 @@ var SymlinkSettingListController = class extends SymlinkSettingController {
     return wrapper;
   }
   /**
+   * Create list item element with span of existing setting pathname, and a
+   * delete icon for removing each setting from the list and deleting it form
+   * the stored plugin settings.
    *
-   * @param pathname
-   * @returns
+   * @param pathname - Pathname which will be in the span of the list item.
+   * @returns List item div.
    */
   createListItem(pathname = this.pathname) {
     const pathnameSpan = document.createElement("span");
@@ -199,34 +239,37 @@ var SymlinkSettingListController = class extends SymlinkSettingController {
     return wrapper;
   }
   /**
-   *
+   * Update local and plugin settings with pathname in input field. Save this
+   * new setting to disk, and then create and mount a new item to the list of
+   * existing settings.
    */
   async mountListItem() {
     const shouldMount = this.shouldMount();
-    if (shouldMount) {
-      this.settingSet.add(this.pathname);
+    if (!shouldMount) {
+      return;
     }
+    this.settingSet.add(this.pathname);
     this.plugin.settings[this.setting] = Array.from(this.settingSet);
     await this.plugin.saveSettings().then(() => {
-      if (shouldMount) {
-        const item = this.createListItem();
-        this.list.appendChild(item);
-      }
+      const item = this.createListItem();
+      this.list.appendChild(item);
       this.updateButton();
       this.plugin.updateRepos();
       this.plugin.highlightTree();
     });
   }
   /**
+   * Determine if a given new setting should be saved and mounted to the list
+   * element. A setting should not be mounted if it is either invalid, or if
+   * the setting already exists in the user settings array.
    *
-   * @returns
+   * @returns Boolean reflecting if setting should be added to existing list.
    */
   shouldMount() {
     return !this.getButtonTooltip();
   }
   /**
-   *
-   * @returns
+   * Updates tooltip and class names for styling of controller `add` button.
    */
   updateButton() {
     if (!this.button) {
@@ -245,8 +288,13 @@ var SymlinkSettingListController = class extends SymlinkSettingController {
     }
   }
   /**
+   * Get tooltip string for setting `add` button. If the setting is valid
+   * (i.e. if it is a valid path string, and does not already exist in the
+   * user settings array for this setting), then <empty string> will be
+   * returned. Obsidian `setTooltip` method on an element will not render
+   * anything to the user if the tooltip is <empty string>.
    *
-   * @returns
+   * @returns Tooltip string.
    */
   getButtonTooltip() {
     let tooltip = "";
@@ -264,27 +312,33 @@ var SymlinkSettingListController = class extends SymlinkSettingController {
 // src/settings/controllers/Dropdown.ts
 var SymlinkSettingDropdownController = class extends SymlinkSettingListController {
   /**
+   * Call super, and assign class properties from provided arguments.
    *
-   * @param param0
+   * @param obj - Class properties required for controller and super.
+   * @param obj.title - Title string for rendering controller.
+   * @param obj.description - Description string for rendering controller.
+   * @param obj.container - Container to append controller to when mounting.
+   * @param obj.plugin - Current instance of symlink obsidian plugin.
+   * @param obj.input - Name and description shown next to input field.
+   * @param obj.setting - Symlink setting key which class instance controls.
+   * @param obj.options - Obsidian dropdown options array for setting values.
    */
   constructor({ title, description, container, plugin, input, setting, options }) {
     super({ title, description, container, plugin, input, setting });
+    // Class properties set in constructor using object assign.
     __publicField(this, "options");
     Object.assign(this, { options });
   }
   /**
+   * Create dropdown setting controller rendering name and description of
+   * setting, a dropdown with available settings, and a list of existing
+   * settings above the dropdown.
    *
-   * @returns
+   * @returns Div with elements for viewing and updating plugin settings.
    */
   createController() {
     var _a;
     const wrapper = this.createWrapper();
-    this.list = this.createList();
-    wrapper.appendChild(this.list);
-    for (const pathname of this.plugin.settings[this.setting]) {
-      const item = this.createListItem(pathname);
-      this.list.appendChild(item);
-    }
     this.pathname = (_a = this.options[0]) == null ? void 0 : _a.value;
     new import_obsidian2.Setting(wrapper).setName(this.input.name).setDesc(this.
     input.description).addDropdown((dropdownComponent) => {
@@ -310,18 +364,28 @@ var SymlinkSettingDropdownController = class extends SymlinkSettingListControlle
 var import_obsidian3 = require("obsidian");
 var SymlinkSettingToggleController = class extends SymlinkSettingController {
   /**
+   * Call super, and assign class properties from provided arguments.
    *
-   * @param param0
+   * @param obj - Class properties required for controller and super.
+   * @param obj.title - Title string for rendering controller.
+   * @param obj.description - Description string for rendering controller.
+   * @param obj.container - Container to append controller to when mounting.
+   * @param obj.plugin - Current instance of symlink obsidian plugin.
+   * @param obj.input - Name and description shown next to input field.
+   * @param obj.setting - Symlink setting key which class instance controls.
    */
   constructor({ title, description, container, plugin, input, setting }) {
     super({ title, description, container, plugin });
+    // Class properties set in constructor using object assign.
     __publicField(this, "input");
     __publicField(this, "setting");
     Object.assign(this, { input, setting });
   }
   /**
+   * Create toggle setting controller rendering name and description of
+   * setting, and a toggle reflecting current state of setting.
    *
-   * @returns
+   * @returns Div with elements for viewing and updating plugin settings.
    */
   createController() {
     const wrapper = this.createWrapper();
@@ -344,9 +408,11 @@ var SymlinkSettingToggleController = class extends SymlinkSettingController {
 // src/settings/Tab.ts
 var SymlinkSettingsTab = class extends import_obsidian4.PluginSettingTab {
   /**
+   * Call obsidian plugin tab super, and set class property reference to the
+   * current instance of the symlink plugin.
    *
-   * @param app
-   * @param plugin
+   * @param app - Instance of obsidian app passed to settings tab manager.
+   * @param plugin - Instance of plugin passed to settings tab manager.
    */
   constructor(app, plugin) {
     super(app, plugin);
@@ -354,7 +420,7 @@ var SymlinkSettingsTab = class extends import_obsidian4.PluginSettingTab {
     this.plugin = plugin;
   }
   /**
-   *
+   * Render required symlink settings controllers to settings tab container.
    */
   display() {
     const { containerEl } = this;
@@ -428,7 +494,44 @@ he parent directory of this vault. See existing list                 above."
       },
       setting: "isWhitelist"
     }).mount();
+    new SymlinkSettingToggleController({
+      title: "",
+      description: "",
+      container: containerEl,
+      plugin: this.plugin,
+      input: {
+        name: "Symlink on start",
+        description: "Should repository symlinks be reloaded when               \
+  starting obsidian, and or when reloading the window?"
+      },
+      setting: "shouldSymlinkOnStart"
+    }).mount();
   }
+};
+
+// src/utils/setBackoff.ts
+var setBackoff = (callback, condition, backoffMs, { maxRetries = Infinity, maxMs = Infinity } = {}, retries = 0, startMs = Date.
+now()) => {
+  retries++;
+  if (condition()) {
+    return callback();
+  }
+  if (retries > maxRetries || Date.now() - startMs > maxMs) {
+    return;
+  }
+  setTimeout(() => setBackoff(
+    callback,
+    condition,
+    backoffMs,
+    { maxRetries, maxMs },
+    retries,
+    startMs
+  ), backoffMs(retries));
+};
+var setLinearBackoff = (callback, condition, { startMs = 10, maxRetries = Infinity,
+maxMs = Infinity } = {}) => {
+  const backoffMs = (retries) => startMs * (1 + retries);
+  return setBackoff(callback, condition, backoffMs, { maxRetries, maxMs });
 };
 
 // src/main.ts
@@ -460,7 +563,12 @@ var Symlink = class extends import_obsidian5.Plugin {
       name: "Symlink repositories",
       callback: () => this.symlinkRepos()
     });
-    this.app.workspace.onLayoutReady(() => this.watchTree());
+    this.app.workspace.onLayoutReady(() => {
+      this.watchTree();
+      if (this.settings.shouldSymlinkOnStart) {
+        this.symlinkRepos();
+      }
+    });
   }
   /**
    * Clean up DOM event listeners etc. when the plugin is unloaded. Also save
@@ -537,25 +645,29 @@ var Symlink = class extends import_obsidian5.Plugin {
     return filteredRepos;
   }
   /**
+   * Index all markdown files in a given repository, observing the directory
+   * ignore list fetched from user settings.
    *
-   * @param repo
-   * @param searchVault
-   * @param dir
-   * @returns
+   * @param repo - Relative path to root of repository from parent directory
+   *      of this vault.
+   * @param searchVault - Should files be indexed from actual repository, or
+   *      from the existing symlinked version contained in the vault.
+   * @param relativeDirname - Child directory of repository being recursed.
+   * @returns Array of markdown file paths relative to root of repository.
    */
-  getRepoFiles(repo, searchVault = false, dir = "") {
-    const dirname = path2.join(
+  getRepoFiles(repo, searchVault = false, relativeDirname = "") {
+    const absoluteDirname = path2.join(
       searchVault ? this.vaultDirname : this.localDirname,
       repo,
-      dir
+      relativeDirname
     );
     const files = [];
-    if (!fs.existsSync(dirname)) {
+    if (!fs.existsSync(absoluteDirname)) {
       return files;
     }
-    for (const pathname of fs.readdirSync(dirname)) {
-      const absolutePath = path2.join(dirname, pathname);
-      const relativePath = path2.join(dir, pathname);
+    for (const pathname of fs.readdirSync(absoluteDirname)) {
+      const absolutePath = path2.join(absoluteDirname, pathname);
+      const relativePath = path2.join(relativeDirname, pathname);
       if (fs.statSync(absolutePath).isFile()) {
         if (path2.extname(absolutePath) === ".md") {
           files.push(relativePath);
@@ -577,49 +689,85 @@ var Symlink = class extends import_obsidian5.Plugin {
     return files;
   }
   /**
-   *
+   * Refresh vault repo symlinks according to user settings. New repos which
+   * should be included will be directly added, existing symlinked vault repos
+   * which should be removed will be deleted from the vault, and existing
+   * symlinked vault repos which should be kept will be updated.
    */
   symlinkRepos() {
     this.updateRepos();
+    const tracer = {
+      deletedPaths: /* @__PURE__ */ new Set(),
+      cacheDeletedPaths: /* @__PURE__ */ new Set(),
+      isComplete: false,
+      get isEqual() {
+        return this.deletedPaths.size === this.cacheDeletedPaths.size && [...this.
+        deletedPaths].every((pathname) => {
+          return this.cacheDeletedPaths.has(pathname);
+        });
+      }
+    };
+    const event = this.app.vault.on("delete", (file) => {
+      tracer.cacheDeletedPaths.add(file.path);
+      if (tracer.isComplete && tracer.isEqual) {
+        this.app.vault.offref(event);
+      }
+    });
     for (const repo of this.repos) {
-      if (this.filteredRepos.includes(repo)) {
-        if (!fs.existsSync(path2.join(this.vaultDirname, repo))) {
-          this.symlinkRepo(repo);
-        } else {
-          const event = this.app.vault.on("delete", (file) => {
-            if (file.path === repo) {
-              this.app.vault.offref(event);
-              this.symlinkRepo(repo);
-            }
-          });
-          this.removeVaultRepo(repo);
-        }
-      } else {
-        this.removeVaultRepo(repo);
+      for (const pathname of this.deleteVaultRepo(repo)) {
+        tracer.deletedPaths.add(pathname);
       }
     }
+    tracer.isComplete = true;
+    setLinearBackoff(
+      () => {
+        for (const repo of this.filteredRepos) {
+          this.symlinkRepo(repo);
+        }
+      },
+      () => tracer.isComplete && tracer.isEqual,
+      { maxMs: 10 * 1e3 }
+    );
   }
   /**
+   * Symlink a specific vault repository.
    *
-   * @param repo
+   * @param repo - Relative path to requested repo from the parent directory
+   *      of the vault.
    */
   symlinkRepo(repo) {
     this.addVaultRepo(repo);
-    for (const link of this.settings.repositoryDirLink) {
-      this.symlinkRepoDirectory(repo, link);
+    for (const dir of this.settings.repositoryDirLink) {
+      this.symlinkRepoDirectory(repo, dir);
     }
     const files = this.getRepoFiles(repo);
     for (const file of files) {
-      this.symlinkFile(repo, file);
+      this.symlinkRepoFile(repo, file);
     }
   }
   /**
+   * Remove a specific vault directory.
    *
-   * @param repo
+   * @param repo - Relative path to requested repo from the parent directory
+   *      of the vault.
    */
-  removeVaultRepo(repo) {
+  deleteVaultRepo(repo) {
     let vaultPath = path2.join(this.vaultDirname, repo);
+    const deletedPaths = [];
+    const walkRepo = (relativePath) => {
+      const absolutePath = path2.join(this.vaultDirname, relativePath);
+      const paths = [relativePath];
+      if (fs.statSync(absolutePath).isFile()) {
+        return paths;
+      }
+      const subPathnames = fs.readdirSync(absolutePath);
+      for (const pathname of subPathnames) {
+        paths.push(...walkRepo(path2.join(relativePath, pathname)));
+      }
+      return paths;
+    };
     if (fs.existsSync(vaultPath)) {
+      deletedPaths.push(...walkRepo(repo));
       fs.rmSync(vaultPath, { recursive: true, force: true });
     }
     while (repo) {
@@ -629,13 +777,17 @@ var Symlink = class extends import_obsidian5.Plugin {
         continue;
       }
       if (!fs.readdirSync(vaultPath).length) {
+        deletedPaths.push(repo);
         fs.rmdirSync(vaultPath);
       }
     }
+    return deletedPaths;
   }
   /**
+   * Add a specific vault directory.
    *
-   * @param repo
+   * @param repo - Relative path to requested repo from the parent directory
+   *      of the vault.
    */
   addVaultRepo(repo) {
     const vaultPath = path2.join(this.vaultDirname, repo);
@@ -644,17 +796,19 @@ var Symlink = class extends import_obsidian5.Plugin {
     }
   }
   /**
+   * Symlink an entire subdirectory of a given repo into the vault repo.
    *
-   * @param repo
-   * @param link
-   * @returns
+   * @param repo - Relative path to requested repo from the parent directory
+   *      of the vault.
+   * @param dir - Relative path to requested directory from the root of the
+   *      given repository.
    */
-  symlinkRepoDirectory(repo, link) {
-    const target = path2.join(this.localDirname, repo, link);
+  symlinkRepoDirectory(repo, dir) {
+    const target = path2.join(this.localDirname, repo, dir);
     if (!fs.existsSync(target)) {
       return;
     }
-    const destination = path2.join(this.vaultDirname, repo, link);
+    const destination = path2.join(this.vaultDirname, repo, dir);
     const parentPath = path2.join(destination, "../");
     if (!fs.existsSync(parentPath)) {
       fs.mkdirSync(parentPath, { recursive: true });
@@ -665,12 +819,14 @@ var Symlink = class extends import_obsidian5.Plugin {
     fs.symlinkSync(target, destination);
   }
   /**
+   * Symlink a specific file from a given repo into the vault repo.
    *
-   * @param repo
-   * @param file
-   * @returns
+   * @param repo - Relative path to requested repo from the parent directory
+   *      of the vault.
+   * @param file - Relative path to requested file from the root of the given
+   *      repository.
    */
-  symlinkFile(repo, file) {
+  symlinkRepoFile(repo, file) {
     const target = path2.join(this.localDirname, repo, file);
     if (!fs.existsSync(target)) {
       return;
@@ -696,8 +852,9 @@ var Symlink = class extends import_obsidian5.Plugin {
     fs.symlinkSync(target, destination);
   }
   /**
-   *
-   * @returns
+   * Watch file tree container in nav, and highlight the tree on any change
+   * with appropriate additional icons to reflect if the file tree item is
+   * a symlinked resource.
    */
   watchTree() {
     const tree = document.querySelector(".nav-files-container");
@@ -727,87 +884,88 @@ var Symlink = class extends import_obsidian5.Plugin {
     this.fileTreeObserver.observe(this.fileTree, options);
   }
   /**
-   *
-   * @param observer
-   * @returns
+   * Dispose of mutation observer on file tree element.
    */
-  unwatchTree(observer = this.fileTreeObserver) {
-    if (!observer) {
-      return;
+  unwatchTree() {
+    if (this.fileTreeObserver) {
+      this.fileTreeObserver.disconnect();
     }
-    observer.disconnect();
   }
   /**
+   * Recursively highlight nav file tree with additional icons to indicate if
+   * the file tree item is a symlinked file, a symlinked directory, a tracked
+   * repository, or an untracked repository which will be removed on the next
+   * symlink refresh.
    *
-   * @param tree
-   * @returns
+   * @param tree - Parent or nested nav tree container element.
    */
   highlightTree(tree = this.fileTree) {
     var _a;
     if (!tree) {
       return;
     }
-    const dataPath = tree.getAttribute("data-path");
-    if (dataPath) {
-      let shouldHighlight = false;
-      let isSymlinkChild = false;
-      let isLinked = true;
-      let isIgnored = false;
-      for (const repo of this.filteredRepos) {
-        if (dataPath.startsWith(repo)) {
-          shouldHighlight = true;
-          isLinked = this.settings.repositoryDirLink.includes(
-            path2.relative(repo, dataPath)
-          );
-          isIgnored = this.settings.repositoryDirIgnore.includes(
-            path2.relative(repo, dataPath)
-          );
-          for (const link of this.settings.repositoryDirLink) {
-            if (dataPath.startsWith(path2.join(repo, link))) {
-              isSymlinkChild = true;
-              break;
-            }
-          }
-          break;
-        }
-      }
-      const icon = tree.querySelector(".tree-symlink-icon") || document.createElement(
-      "div");
-      icon.classList.add("tree-item-icon", "tree-symlink-icon");
-      (_a = icon.firstChild) == null ? void 0 : _a.remove();
-      const absolutePath = path2.join(this.vaultDirname, dataPath);
-      if (!fs.existsSync(absolutePath)) {
-        return;
-      }
-      const isFile = fs.statSync(absolutePath).isFile();
-      const isSymlink = fs.lstatSync(absolutePath).isSymbolicLink();
-      if (isFile && isSymlink && shouldHighlight) {
-        (0, import_obsidian5.setIcon)(icon, "file-symlink");
-      } else if (isFile && shouldHighlight && !isSymlinkChild) {
-        (0, import_obsidian5.setIcon)(icon, "alert-circle");
-        icon.style.color = "var(--color-orange)";
-      } else if (isSymlink && shouldHighlight) {
-        (0, import_obsidian5.setIcon)(icon, "folder-symlink");
-        if (!isLinked) {
-          icon.style.color = "var(--color-orange)";
-        }
-      } else if (isIgnored && shouldHighlight) {
-        (0, import_obsidian5.setIcon)(icon, "alert-circle");
-        icon.style.color = "var(--color-orange)";
-      } else {
-        if (this.filteredRepos.includes(dataPath)) {
-          (0, import_obsidian5.setIcon)(icon, "check-circle-2");
-          icon.style.color = "var(--color-green)";
-        } else if (this.repos.includes(dataPath)) {
-          (0, import_obsidian5.setIcon)(icon, "alert-circle");
-          icon.style.color = "var(--color-orange)";
-        }
-      }
-      tree == null ? void 0 : tree.appendChild(icon);
-    }
     for (const child of Array.from(tree.children)) {
       this.highlightTree(child);
     }
+    const dataPath = tree.getAttribute("data-path");
+    if (!dataPath) {
+      return;
+    }
+    const absolutePath = path2.join(this.vaultDirname, dataPath);
+    if (!fs.existsSync(absolutePath)) {
+      return;
+    }
+    const isFile = fs.statSync(absolutePath).isFile();
+    const isSymlink = fs.lstatSync(absolutePath).isSymbolicLink();
+    let shouldHighlight = false;
+    let isSymlinkChild = false;
+    let isIgnored = false;
+    let isLinked = true;
+    for (const repo of this.filteredRepos) {
+      if (dataPath.startsWith(repo)) {
+        shouldHighlight = true;
+        isLinked = this.settings.repositoryDirLink.includes(
+          path2.relative(repo, dataPath)
+        );
+        isIgnored = this.settings.repositoryDirIgnore.includes(
+          path2.relative(repo, dataPath)
+        );
+        for (const link of this.settings.repositoryDirLink) {
+          if (dataPath.startsWith(path2.join(repo, link))) {
+            isSymlinkChild = true;
+            break;
+          }
+        }
+        break;
+      }
+    }
+    const icon = tree.querySelector(".tree-symlink-icon") || document.createElement(
+    "div");
+    icon.classList.add("tree-item-icon", "tree-symlink-icon");
+    (_a = icon.querySelector("svg")) == null ? void 0 : _a.remove();
+    if (isFile && isSymlink && shouldHighlight) {
+      (0, import_obsidian5.setIcon)(icon, "file-symlink");
+    } else if (isFile && !isSymlinkChild && shouldHighlight) {
+      (0, import_obsidian5.setIcon)(icon, "alert-circle");
+      icon.style.color = "var(--color-orange)";
+    } else if (isSymlink && shouldHighlight) {
+      (0, import_obsidian5.setIcon)(icon, "folder-symlink");
+      if (!isLinked) {
+        icon.style.color = "var(--color-orange)";
+      }
+    } else if (isIgnored && shouldHighlight) {
+      (0, import_obsidian5.setIcon)(icon, "alert-circle");
+      icon.style.color = "var(--color-orange)";
+    } else {
+      if (this.filteredRepos.includes(dataPath)) {
+        (0, import_obsidian5.setIcon)(icon, "check-circle-2");
+        icon.style.color = "var(--color-green)";
+      } else if (this.repos.includes(dataPath)) {
+        (0, import_obsidian5.setIcon)(icon, "alert-circle");
+        icon.style.color = "var(--color-orange)";
+      }
+    }
+    tree.appendChild(icon);
   }
 };
 var main_default = Symlink;
