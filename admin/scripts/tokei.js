@@ -71,7 +71,7 @@ exec(`tokei --output json ${include.join(" ")}`, (error, stdout, stderr) => {
         message: lineCount < 1000 ? lineCount.toString()
             : `${(lineCount / 1000).toFixed(1)}k`,
         style: "for-the-badge",
-        labelColor: "181b1a", // Left badge color.
+        labelColor: "191a1a", // Left badge color.
         color: "779966" // Right badge color.
     }
 
