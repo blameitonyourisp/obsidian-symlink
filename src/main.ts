@@ -337,6 +337,7 @@ class Symlink extends Plugin {
      *
      * @param repo - Relative path to requested repo from the parent directory
      *      of the vault.
+     * @returns Array of deleted resources (paths of files and directories).
      */
     deleteVaultRepo(repo: string): string[] {
         // Calculate absolute path of symlinked repo within the vault.
