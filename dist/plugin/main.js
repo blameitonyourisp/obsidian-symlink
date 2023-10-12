@@ -750,6 +750,7 @@ var Symlink = class extends import_obsidian5.Plugin {
    *
    * @param repo - Relative path to requested repo from the parent directory
    *      of the vault.
+   * @returns Array of deleted resources (paths of files and directories).
    */
   deleteVaultRepo(repo) {
     let vaultPath = path2.join(this.vaultDirname, repo);
