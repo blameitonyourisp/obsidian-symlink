@@ -27,6 +27,10 @@
  *      file.
  * @property {string[]} include - List of directories to include relative to
  *      package.json.
+ * @property {string} labelColor - Shields.io label colour (colour of left hand
+ *      side of badge).
+ * @property {string} color - Shields.io colour (colour of right hand side of
+ *      badge).
  */
 
 // @@exports

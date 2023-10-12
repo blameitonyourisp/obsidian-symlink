@@ -25,12 +25,13 @@ import { parseCliArguments } from "./utils/index.js"
 
 // @@imports-types
 /* eslint-disable no-unused-vars -- Types only used in comments. */
-import { TokeiCliOptions } from "./types/Tokei.js"
-/* eslint-enable no-unused-vars -- Close disable-enable pair */
+import { TokeiCliOptions } from "./types/index.js"
+/* eslint-enable no-unused-vars -- Close disable-enable pair. */
 
 // @@body
 // Explicit include list for source code and documentation rather than using a
-// repetitive .tokeignore file to exclude boilerplate config file etc.
+// repetitive .tokeignore file to exclude boilerplate config file etc., also
+// default colours for shields.io badge.
 const defaults = {
     path: {
         name: "path",
@@ -43,9 +44,21 @@ const defaults = {
         aliases: ["i"],
         value: ["src", "docs"],
         description: "List of directories to include relative to package.json."
+    },
+    labelColor: {
+        name: "label-color",
+        aliases: ["l"],
+        value: "191a1a",
+        description: ""
+    },
+    color: {
+        name: "color",
+        aliases: ["c"],
+        value: "779966",
+        description: ""
     }
 }
-const { path, include } = /** @type {TokeiCliOptions} */
+const { path, include, labelColor, color } = /** @type {TokeiCliOptions} */
     (parseCliArguments(defaults))
 
 // Count lines of code using tokei - note that this uses the "tokei" command
@@ -71,8 +84,8 @@ exec(`tokei --output json ${include.join(" ")}`, (error, stdout, stderr) => {
         message: lineCount < 1000 ? lineCount.toString()
             : `${(lineCount / 1000).toFixed(1)}k`,
         style: "for-the-badge",
-        labelColor: "191a1a", // Left badge color.
-        color: "779966" // Right badge color.
+        labelColor, // Left badge color.
+        color // Right badge color.
     }
 
     // Save endpoint to dist dir and log total line count (dist dir must exist).
